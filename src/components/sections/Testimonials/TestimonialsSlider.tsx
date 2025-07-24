@@ -1,0 +1,51 @@
+"use client";
+
+import { Star } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay, EffectFade } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/effect-fade";
+import { Testimonial } from "./Testimonials";
+import Image from "next/image";
+
+export default function TestimonialsSlider({ testimonials }: { testimonials: Testimonial[] }) {
+  return (
+    <Swiper
+      spaceBetween={16}
+      slidesPerView={1}
+      pagination={{ clickable: true }}
+      effect="fade"
+      autoplay={{ delay: 3000, disableOnInteraction: false }}
+      modules={[Pagination, Autoplay, EffectFade]}
+    >
+      {testimonials.map((testimonial, index) => (
+        <SwiperSlide key={index}>
+          <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl p-6 border border-gray-700 hover:border-primary-500/40 transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex items-center mb-4">
+              <Image
+                src={testimonial.avatar}
+                alt={testimonial.name}
+                width={48}
+                height={48}
+                className="w-12 h-12 rounded-full object-cover mr-4"
+              />
+              <div>
+                <h4 className="text-white font-semibold">{testimonial.name}</h4>
+                <p className="text-gray-400 text-sm">{testimonial.game} Player</p>
+              </div>
+            </div>
+
+            <div className="flex items-center mb-3">
+              {[...Array(testimonial.rating)].map((_, i) => (
+                <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
+              ))}
+            </div>
+
+            <p className="text-gray-300 text-sm italic">{testimonial.comment}</p>
+          </div>
+        </SwiperSlide>
+      ))}
+    </Swiper>
+  );
+}

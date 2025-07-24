@@ -1,26 +1,189 @@
 @import "tailwindcss";
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-theme="dark"] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+
+@theme{
+  /* --color-primary-50: oklch(0.977 0.014 308.299);
+  --color-primary-100: oklch(0.946 0.033 307.174);
+  --color-primary-200: oklch(0.902 0.063 306.703);
+  --color-primary-300: oklch(0.827 0.119 306.383);
+  --color-primary-400: oklch(0.714 0.203 305.504);
+  --color-primary-500: oklch(0.627 0.265 303.9);
+  --color-primary-600: oklch(0.558 0.288 302.321);
+  --color-primary-700: oklch(0.496 0.265 301.924);
+  --color-primary-800: oklch(0.438 0.218 303.724);
+  --color-primary-900: oklch(0.381 0.176 304.987);
+  --color-primary-950: oklch(0.291 0.149 302.717); */
+
+  --color-primary-50: oklch(0.97 0.014 254.604);
+  --color-primary-100: oklch(0.932 0.032 255.585);
+  --color-primary-200: oklch(0.882 0.059 254.128);
+  --color-primary-300: oklch(0.809 0.105 251.813);
+  --color-primary-400: oklch(0.707 0.165 254.624);
+  --color-primary-500: oklch(0.623 0.214 259.815);
+  --color-primary-600: oklch(0.546 0.245 262.881);
+  --color-primary-700: oklch(0.488 0.243 264.376);
+  --color-primary-800: oklch(0.424 0.199 265.638);
+  --color-primary-900: oklch(0.379 0.146 265.522);
+  --color-primary-950: oklch(0.282 0.091 267.935);
+
+  /* --color-accent-50: oklch(0.977 0.017 320.058);
+  --color-accent-100: oklch(0.952 0.037 318.852);
+  --color-accent-200: oklch(0.903 0.076 319.62);
+  --color-accent-300: oklch(0.833 0.145 321.434);
+  --color-accent-400: oklch(0.74 0.238 322.16);
+  --color-accent-500: oklch(0.667 0.295 322.15);
+  --color-accent-600: oklch(0.591 0.293 322.896);
+  --color-accent-700: oklch(0.518 0.253 323.949);
+  --color-accent-800: oklch(0.452 0.211 324.591);
+  --color-accent-900: oklch(0.401 0.17 325.612);
+  --color-accent-950: oklch(0.293 0.136 325.661); */
+
+  --color-accent-50: oklch(0.984 0.014 180.72);
+  --color-accent-100: oklch(0.953 0.051 180.801);
+  --color-accent-200: oklch(0.91 0.096 180.426);
+  --color-accent-300: oklch(0.855 0.138 181.071);
+  --color-accent-400: oklch(0.777 0.152 181.912);
+  --color-accent-500: oklch(0.704 0.14 182.503);
+  --color-accent-600: oklch(0.6 0.118 184.704);
+  --color-accent-700: oklch(0.511 0.096 186.391);
+  --color-accent-800: oklch(0.437 0.078 188.216);
+  --color-accent-900: oklch(0.386 0.063 188.416);
+  --color-accent-950: oklch(0.277 0.046 192.524);
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-gray-200); /* gray-800 */
+  border-radius: 8px;
+}
+[data-theme="dark"] .custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-gray-800); /* gray-800 */
+  border-radius: 8px;
+}
+/* Untuk Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-500) var(--color-gray-200);
+}
+[data-theme="dark"] .custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-500) var(--color-gray-800);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--color-primary-500), var(--color-primary-700)); /* purple gradient */
+  border-radius: 8px;
+  border: 2px solid var(--background); /* biar ada jarak */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--color-primary-400), var(--color-primary-500)); /* lighter on hover */
+}
+
+
+/* NProgress base style */
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: linear-gradient(to right, var(--color-primary-400), var(--color-accent-600));
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-radius: 1px;
+  box-shadow: 0 0 10px var(--color-primary-400), 0 0 5px var(--color-accent-600);
+  transform-origin: left;
+  transition: all 0.3s ease;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  background-color: var(--color-white) !important; /* Tailwind bg-gray-800 */
+  color: var(--color-black) !important;
+  box-shadow: 0 0 0px 1000px var(--color-white) inset;
+  -webkit-text-fill-color: var(--color-black);
+  caret-color: var(--color-black);
+}
+
+[data-theme="dark"] input:-webkit-autofill,
+[data-theme="dark"] input:-webkit-autofill:hover,
+[data-theme="dark"] input:-webkit-autofill:focus {
+  background-color: var(--color-gray-800) !important; /* Tailwind bg-gray-800 */
+  color: var(--color-white) !important;
+  box-shadow: 0 0 0px 1000px var(--color-gray-800) inset;
+  -webkit-text-fill-color: var(--color-white);
+  caret-color: var(--color-white);
+}
+
+.hero-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239333ea' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+@keyframes slow-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-slow-bounce {
+  animation: slow-bounce 6s ease-in-out infinite;
+}
+.animate-slow-bounce-delay {
+  animation: slow-bounce 6s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+@keyframes gradient-move {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-10px, -10px) scale(1.05); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.animate-gradient-move {
+  animation: gradient-move 12s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeInScale {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

@@ -1,103 +1,160 @@
-import Image from "next/image";
+import dynamic from "next/dynamic";
+import Hero from "@/components/sections/Hero/Hero";
+import ProductGrid from "@/components/sections/Products/ProductGrid";
+import PageTransition from "@/components/animations/PageTransition";
+import Wrapper from "@/components/ui/Wrapper";
+import { normalizeSlidesPayload } from "@/lib/slide/normalize";
+import type { Slide } from "@/components/sections/Hero/slide";
 
-export default function Home() {
+const app_name = process.env.NEXT_PUBLIC_APP_NAME;
+const app_url = process.env.NEXT_PUBLIC_BASE_URL;
+
+// Dynamic import (lazy load)
+const Faq = dynamic(() => import("@/components/sections/Faq/Faq"));
+const Testimonials = dynamic(() => import("@/components/sections/Testimonials/Testimonials"));
+
+// FAQ items
+const FAQ_ITEMS = [
+  { 
+    q: "Seberapa cepat proses top-up?", 
+    a: "Sebagian besar top-up diproses kurang dari 30 detik. Namun, untuk beberapa game, proses bisa memakan waktu hingga 5 menit pada jam sibuk." 
+  },
+  { 
+    q: "Apakah aman melakukan top-up di sini?", 
+    a: "Ya, kami menggunakan API resmi game dan metode pembayaran yang aman. Data akun Anda tidak akan pernah disimpan." 
+  },
+  { 
+    q: "Bagaimana jika kredit saya tidak masuk?", 
+    a: "Segera hubungi tim dukungan 24/7 kami. Kami menjamin pengiriman atau pengembalian dana penuh dalam 24 jam." 
+  },
+  { 
+    q: "Apakah ada promo atau diskon?", 
+    a: "Tentu! Kami secara rutin memberikan bonus kredit, diskon pembelian dalam jumlah besar, dan promo spesial untuk pelanggan setia." 
+  },
+  {
+    q: "Metode pembayaran apa saja yang tersedia?",
+    a: "Kami mendukung berbagai metode pembayaran seperti transfer bank, e-wallet (OVO, GoPay, Dana), kartu kredit/debit, hingga gerai ritel seperti Alfamart dan Indomaret."
+  },
+  {
+    q: "Bagaimana proses refund jika ada kesalahan?",
+    a: "Jika terjadi kesalahan transaksi atau gagal top-up, kami akan melakukan refund maksimal 1x24 jam setelah laporan diterima. Proses ini 100% aman dan transparan."
+  },
+  {
+    q: "Bagaimana cara melakukan top-up?",
+    a: "Pilih game yang diinginkan, masukkan ID akun Anda, pilih nominal, lakukan pembayaran, dan saldo akan masuk secara otomatis."
+  }
+];
+
+// Testimonials
+const testimonials = [
+  { name: 'Alex Chen', game: 'Mobile Legends', rating: 5, comment: 'Super fast delivery! Got my diamonds in less than 20 seconds.', avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100' },
+  { name: 'Sarah Kim', game: 'Genshin Impact', rating: 5, comment: "Best prices I've found online. Will definitely use again!", avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100' },
+  { name: 'Mike Johnson', game: 'PUBG Mobile', rating: 5, comment: 'Reliable service with great customer support. Highly recommended.', avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100' }
+];
+
+export const metadata = {
+  title: `${app_name} – Top-up Game, Pulsa & Paket Data, Langganan Digital Murah & Instan`,
+  description: `Top-up Mobile Legends, Free Fire, Genshin Impact, beli pulsa & paket data semua operator, dan langganan digital instan & aman hanya di ${app_name}.`,
+  keywords: [
+    'top up game murah',
+    'top up mobile legends',
+    'top up free fire',
+    'top up genshin impact',
+    'beli pulsa online',
+    'paket data murah',
+    'voucher langganan digital',
+    'top up diamond',
+    `${app_name} top up`
+  ],
+  metadataBase: new URL(app_url ?? ""),
+  alternates: { canonical: '/' },
+  robots: 'index, follow',
+  openGraph: {
+    title: `${app_name} – Top-up Game, Pulsa & Paket Data, Langganan Digital`,
+    description: `Top-up game favorit, isi pulsa & paket internet Telkomsel/Indosat/XL/Tri, dan beli langganan digital dengan harga terbaik di ${app_name}.`,
+    url: new URL(app_url ?? ""),
+    siteName: app_name,
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_OG_IMAGE}og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: `${app_name} – Top-up Game & Pulsa`,
+      },
+    ],
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${app_name} – Top-up Game, Pulsa & Paket Data Murah`,
+    description: `Top-up MLBB, FF, Genshin, beli pulsa & paket data instan, plus langganan digital—semua di ${app_name}.`,
+    images: [`${process.env.NEXT_PUBLIC_OG_IMAGE}og-image.jpg`],
+    site: process.env.NEXT_PUBLIC_TWITER_TAG,
+  },
+};
+
+export const viewport = { themeColor: "#6b21a8" };
+
+export default async function HomePage() {
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+
+  // Fetch data paralel & cache 1 jam
+  const [resGames, resOperators, resSlider] = await Promise.all([
+    fetch(API + 'api/v1/games?per_page=6', {
+      headers: { Accept: 'application/json' },
+      next: { revalidate: 3600 }, // Cache 1 jam
+    }),
+    fetch(API + 'api/v1/operators?per_page=6', {
+      headers: { Accept: 'application/json' },
+      next: { revalidate: 3600 },
+    }),
+    fetch(API + 'api/v1/contents/slider', {
+      headers: { Accept: 'application/json' },
+      next: { revalidate: 3600 },
+    }),
+  ]);
+
+  const [jsonGames, jsonOperators, jsonSlider] = await Promise.all([
+    resGames.json().catch(() => ({})),
+    resOperators.json().catch(() => ({})),
+    resSlider.json().catch(() => ({})),
+  ]);
+
+  const dataGames = jsonGames?.data ?? {};
+  const games = dataGames.games || [];
+  const nextCursor = dataGames.next_cursor ?? null;
+  const hasMore = Boolean(dataGames.has_more);
+  const operators = jsonOperators?.data?.operators || [];
+
+  // Normalize slider
+  const slider: Slide[] = normalizeSlidesPayload(jsonSlider?.data ?? jsonSlider, API);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <PageTransition>
+      <Wrapper>
+        <Hero slider={slider} />
+        <ProductGrid
+          activeCategoryDefault="topup"
+          games={games}
+          operators={operators}
+          nextCursor={nextCursor}
+          hasMore={hasMore}
         />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        {/* Testimonials */}
+        <div className="relative py-16">
+          <Testimonials testimonials={testimonials} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        {/* FAQ */}
+        <div className="relative py-16">
+          <Faq
+            items={FAQ_ITEMS}
+            variant="accordion"
+            title="Frequently Asked Questions"
+            subtitle="Everything you need to know about game top-ups"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        </div>
+      </Wrapper>
+    </PageTransition>
   );
 }
