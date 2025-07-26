@@ -1,7 +1,6 @@
 import './globals.css';
 import { Inter } from "next/font/google";
 import { Providers } from './providers';
-import Footer from '@/components/layout/Footer';
 import ClientWrapper from './ClientWrapper';
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -15,9 +14,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ClientWrapper>
             {children}
           </ClientWrapper>
-
-          {/* Footer tetap di server untuk render cepat */}
-          <Footer />
         </Providers>
       </body>
     </html>

@@ -53,20 +53,30 @@ export const viewport = {
   themeColor: "#6b21a8",
 };
 
-export default async function TopUpPage() {
-  const res = await fetch(
-    process.env.NEXT_PUBLIC_API_BASE_URL + 'api/v1/games?per_page=24',
-    {
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 3600 }, // cache 1 jam
-    }
-  );
+async function fetchGames() {
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+  try {
+    const res = await fetch(
+      API + 'api/v1/games?per_page=24',
+      {
+        headers: { Accept: 'application/json' },
+        next: { revalidate: 3600 },
+      }
+    );
+    if (!res.ok) throw new Error('Failed to fetch games');
+    const json = await res.json();
+    return json?.data ?? {};
+  } catch (e) {
+    console.error(e);
+    return {};
+  }
+}
 
-  const json = await res.json().catch(() => ({}));
-  const data = json?.data ?? {};
-  const games = data.games || [];
+export default async function TopUpPage() {
+  const data = await fetchGames();
+  const games = data.games ?? [];
   const nextCursor = data.next_cursor ?? null;
-  const hasMore = Boolean(data.has_more);
+  const hasMore = !!data.has_more;
 
   return (
     <PageTransition>

@@ -1,3 +1,4 @@
+
 import dynamic from "next/dynamic";
 import Hero from "@/components/sections/Hero/Hero";
 import ProductGrid from "@/components/sections/Products/ProductGrid";
@@ -13,7 +14,7 @@ const app_url = process.env.NEXT_PUBLIC_BASE_URL;
 const Faq = dynamic(() => import("@/components/sections/Faq/Faq"));
 const Testimonials = dynamic(() => import("@/components/sections/Testimonials/Testimonials"));
 
-// FAQ items
+// FAQ items (static, bisa di luar komponen)
 const FAQ_ITEMS = [
   { 
     q: "Seberapa cepat proses top-up?", 
@@ -45,7 +46,7 @@ const FAQ_ITEMS = [
   }
 ];
 
-// Testimonials
+// Testimonials (static, bisa di luar komponen)
 const testimonials = [
   { name: 'Alex Chen', game: 'Mobile Legends', rating: 5, comment: 'Super fast delivery! Got my diamonds in less than 20 seconds.', avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100' },
   { name: 'Sarah Kim', game: 'Genshin Impact', rating: 5, comment: "Best prices I've found online. Will definitely use again!", avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100' },
@@ -96,38 +97,35 @@ export const metadata = {
 
 export const viewport = { themeColor: "#6b21a8" };
 
+
 export default async function HomePage() {
   const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
-  // Fetch data paralel & cache 1 jam
-  const [resGames, resOperators, resSlider] = await Promise.all([
-    fetch(API + 'api/v1/games?per_page=6', {
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 3600 }, // Cache 1 jam
-    }),
-    fetch(API + 'api/v1/operators?per_page=6', {
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 3600 },
-    }),
-    fetch(API + 'api/v1/contents/slider', {
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 3600 },
-    }),
-  ]);
+  // Helper fetcher
+  async function fetchJson(url: string) {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: 'application/json' },
+        next: { revalidate: 3600 },
+      });
+      return await res.json();
+    } catch {
+      return {};
+    }
+  }
 
+  // Fetch paralel & error safe
   const [jsonGames, jsonOperators, jsonSlider] = await Promise.all([
-    resGames.json().catch(() => ({})),
-    resOperators.json().catch(() => ({})),
-    resSlider.json().catch(() => ({})),
+    fetchJson(API + 'api/v1/games?per_page=6'),
+    fetchJson(API + 'api/v1/operators?per_page=6'),
+    fetchJson(API + 'api/v1/contents/slider'),
   ]);
 
   const dataGames = jsonGames?.data ?? {};
-  const games = dataGames.games || [];
+  const games = dataGames.games ?? [];
   const nextCursor = dataGames.next_cursor ?? null;
-  const hasMore = Boolean(dataGames.has_more);
-  const operators = jsonOperators?.data?.operators || [];
-
-  // Normalize slider
+  const hasMore = !!dataGames.has_more;
+  const operators = jsonOperators?.data?.operators ?? [];
   const slider: Slide[] = normalizeSlidesPayload(jsonSlider?.data ?? jsonSlider, API);
 
   return (

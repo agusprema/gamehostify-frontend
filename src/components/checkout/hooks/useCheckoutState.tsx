@@ -85,15 +85,22 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
                 const data: PaymentMethodsMap = json.data;
                 setPaymentMethods(data);
 
-                const defaultCategory = Object.keys(data)[0];
-                const defaultChannel = data[defaultCategory]?.[0]?.code;
-                if (defaultCategory && defaultChannel) {
-                  setSelectedMethod(defaultCategory);
-                  setSelectedChannel(defaultChannel);
+                const categories = Object.keys(data);
+                if (categories.length > 0) {
+                  const defaultCategory = categories[0];
+                  const channels = data[defaultCategory];
+                  if (channels && channels.length > 0) {
+                    setSelectedMethod(defaultCategory);
+                    setSelectedChannel(channels[0].code);
+                  }
                 }
+              } else if (!cancelled) {
+                // Show error to user (replace with toast if available)
+                alert("Gagal memuat metode pembayaran. Silakan coba lagi.");
               }
             } catch (err) {
               console.error("Failed to load payment methods", err);
+              if (!cancelled) alert("Gagal memuat metode pembayaran. Silakan cek koneksi Anda.");
             } finally {
               if (!cancelled) setLoadingPaymentMethods(false);
             }
@@ -101,6 +108,9 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
           (async () => {
             try {
               await fetchCart();
+            } catch (err) {
+              console.error("Failed to load cart", err);
+              if (!cancelled) alert("Gagal memuat keranjang. Silakan refresh halaman.");
             } finally {
               if (!cancelled) setLoadingCart(false);
             }
@@ -108,6 +118,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
         ]);
       } catch (err) {
         console.error("Initial load error", err);
+        alert("Terjadi kesalahan saat inisialisasi checkout. Silakan refresh halaman.");
       }
     }
 

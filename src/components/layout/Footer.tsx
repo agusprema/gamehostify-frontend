@@ -41,17 +41,17 @@ const Footer = () => {
 
   const productLinks = [
     { name: "Game Top-up", href: "/game-topup" },
-    { name: "Mobile Legends", href: "/mobile-legends" },
-    { name: "Free Fire", href: "/free-fire" },
-    { name: "PUBG Mobile", href: "/pubg-mobile" },
     { name: "Pulsa & Data", href: "/pulsa-data" },
     { name: "Langganan", href: "/langganan" },
+    { name: "Hiburan", href: "/hiburan" },
+    { name: "PLN", href: "/pln" },
+    { name: "E-Money", href: "/e-money" },
   ];
 
   const supportLinks = [
     { name: "Help Center", href: "/help-center" },
     { name: "Contact Us", href: "/contact" },
-    { name: "Order Status", href: "/order-status" },
+    { name: "Check Invoice", href: "/invoice" },
     { name: "Refund Policy", href: "/refund-policy" },
     { name: "Terms of Service", href: "/terms" },
     { name: "Privacy Policy", href: "/privacy" },
@@ -65,7 +65,7 @@ const Footer = () => {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand */}
-          <div className="space-y-5 sm:col-span-2 lg:col-span-2">
+          <div className="space-y-5 sm:col-span-2 lg:col-span-2 flex flex-col items-center justify-center text-center">
             <div className="flex items-center space-x-2">
               <div className="bg-gradient-to-r from-primary-500 to-primary-700 p-2 rounded-lg shadow-md shadow-primary-500/30">
                 <Gamepad2 className="h-6 w-6 text-white" />
@@ -98,8 +98,11 @@ const Footer = () => {
           </div>
 
           {/* Produk */}
-          <div>
-            <h3 className="text-gray-800 dark:text-white font-semibold mb-4 text-sm tracking-wide uppercase">Produk</h3>
+          <div className="text-center sm:text-left">
+            <h3 className="font-semibold mb-4 text-sm tracking-wide uppercase text-primary-600 dark:text-primary-400">
+              Produk
+            </h3>
+
             <ul className="space-y-2">
               {productLinks.map((item) => (
                 <li key={item.name}>
@@ -116,9 +119,13 @@ const Footer = () => {
             </ul>
           </div>
 
+
           {/* Support */}
-          <div>
-            <h3 className="text-gray-800 dark:text-white font-semibold mb-4 text-sm tracking-wide uppercase">Support</h3>
+          <div className="text-center sm:text-left">
+            <h3 className="text-primary-600 dark:text-primary-400 font-semibold mb-4 text-sm tracking-wide uppercase">
+              Support
+            </h3>
+
             <ul className="space-y-2">
               {supportLinks.map((item) => (
                 <li key={item.name}>
@@ -135,34 +142,41 @@ const Footer = () => {
             </ul>
           </div>
 
+
           {/* Newsletter */}
-          <div>
-            <h3 className="text-gray-800 dark:text-white font-semibold mb-4 text-sm tracking-wide uppercase">Newsletter</h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Dapatkan info promo, event & top deal langsung ke email kamu.
+          <div className="w-full max-w-lg mx-auto space-y-4 text-center">
+            <h3 className="text-base font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
+              Newsletter
+            </h3>
+
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Dapatkan info promo & event eksklusif langsung ke email kamu.
             </p>
-            <form onSubmit={handleSubscribe} className="space-y-3">
-              <div className="flex items-center rounded-lg border border-gray-300 dark:border-gray-700 focus-within:border-primary-500 bg-gray-100 dark:bg-gray-800/50 overflow-hidden">
-                <input
-                  type="email"
-                  value={subEmail}
-                  onChange={(e) => setSubEmail(e.target.value)}
-                  placeholder="Email kamu"
-                  className="flex-1 bg-transparent px-3 py-2 text-sm text-gray-800 dark:text-white placeholder:text-gray-500 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="px-3 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white flex items-center gap-1 transition-colors"
-                >
-                  <Send className="h-4 w-4" />
-                  <span className="hidden sm:inline">Kirim</span>
-                </button>
-              </div>
-              {subscribed === "ok" && (
-                <p className="text-xs text-green-500 dark:text-green-400">Terima kasih! Cek email kamu.</p>
-              )}
+
+            <form onSubmit={handleSubscribe} className="flex sm:flex-col flex-row items-center gap-3 mt-4">
+              <input
+                type="email"
+                value={subEmail}
+                onChange={(e) => setSubEmail(e.target.value)}
+                placeholder="Masukkan email kamu"
+                className="w-full flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-800 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+              />
+              <button
+                type="submit"
+                className="sm:w-full cursor-pointer w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white transition"
+              >
+                <Send className="w-4 h-4" />
+                <span>Kirim</span>
+              </button>
             </form>
+
+            {subscribed === "ok" && (
+              <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                Terima kasih! Cek email kamu.
+              </p>
+            )}
           </div>
+
         </div>
 
         {/* Divider */}
@@ -185,7 +199,7 @@ const Footer = () => {
           </div>
 
           {/* Contact strip */}
-          <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-center text-center gap-4 text-xs text-gray-500 dark:text-gray-400">
             <span className="inline-flex items-center gap-2">
               <Mail className="h-3.5 w-3.5 text-primary-500 dark:text-primary-400" /> support@gamevault.com
             </span>

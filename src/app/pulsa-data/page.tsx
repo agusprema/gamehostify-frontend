@@ -50,16 +50,25 @@ export const metadata: Metadata = {
 
 export const viewport = { themeColor: "#6b21a8" };
 
-export default async function PulsaDataPage() {
+async function fetchOperators() {
   const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+  try {
+    const res = await fetch(`${API}api/v1/operators`, {
+      headers: { Accept: "application/json" },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) throw new Error("Failed to fetch operators");
+    const json = await res.json();
+    return json?.data?.operators ?? [];
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
 
-  const res = await fetch(`${API}api/v1/operators`, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 3600 }, // Cache data selama 1 jam
-  });
-
-  if (!res.ok) {
-    console.error("Failed to fetch operators");
+export default async function PulsaDataPage() {
+  const operators = await fetchOperators();
+  if (!operators) {
     return (
       <PageTransition>
         <div className="text-center text-white py-20">
@@ -68,11 +77,6 @@ export default async function PulsaDataPage() {
       </PageTransition>
     );
   }
-
-  const json = await res.json();
-  const data = json?.data ?? {};
-  const operators = data.operators || [];
-
   return (
     <PageTransition>
       <PulsaDatapage operators={operators} />

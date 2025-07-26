@@ -34,8 +34,8 @@
   --color-primary-600: oklch(0.546 0.245 262.881);
   --color-primary-700: oklch(0.488 0.243 264.376);
   --color-primary-800: oklch(0.424 0.199 265.638);
-  --color-primary-900: oklch(0.379 0.146 265.522);
-  --color-primary-950: oklch(0.282 0.091 267.935);
+  --color-primary-900: oklch(0.13 0.0543 265.522);
+  --color-primary-950: oklch(0.1294 0.0321 267.935);
 
   /* --color-accent-50: oklch(0.977 0.017 320.058);
   --color-accent-100: oklch(0.952 0.037 318.852);

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
 
 import StepIndicator from "@/components/checkout/Steps/StepIndicator";
 import CustomerInfo from "@/components/checkout/Steps/CustomerInfo";
@@ -11,6 +11,7 @@ import Processing from "@/components/checkout/Steps/Processing";
 import Success from "@/components/checkout/Steps/Success";
 import OrderSummary from "@/components/checkout/Summary/OrderSummary";
 import Wrapper from "@/components/ui/Wrapper";
+import Link from "../ui/Link";
 
 import { useCheckoutState } from "./hooks/useCheckoutState";
 
@@ -51,7 +52,7 @@ export default function CheckoutPage() {
   });
 
   let mainContent: React.ReactNode = null;
-
+  // Jika cart kosong, tampilkan desain keranjang kosong
   if (step === "info") {
     mainContent = (
       <CustomerInfo
@@ -61,6 +62,22 @@ export default function CheckoutPage() {
         serverErrors={customerServerErrors}
       />
     );
+
+    if (!items || items.length === 0 ) {
+      mainContent = (
+        <div className="max-w-xl mx-auto px-4 py-16 flex flex-col items-center justify-center text-center">
+            <ShoppingCart className="h-20 w-20 text-primary-500 mb-6" />
+            <h2 className="text-2xl font-bold mb-2 text-primary-600 dark:text-primary-400">Keranjang Kosong</h2>
+            <p className="mb-6 text-gray-500 dark:text-gray-300">Belum ada produk yang ditambahkan ke keranjang.<br />Silakan pilih produk terlebih dahulu sebelum checkout.</p>
+            <Link
+              href="/"
+              className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-semibold shadow transition"
+            >
+              Kembali ke Shop
+            </Link>
+          </div>
+      );
+    }
   } else if (step === "payment") {
     mainContent = (
       <PaymentMethod
@@ -92,19 +109,20 @@ export default function CheckoutPage() {
   }
 
   return (
-    <Wrapper>
-      <div className="max-w-5xl mx-auto px-4 mb-10">
+    <Wrapper className="py-10">
+      <div className="max-w-5xl mx-auto px-4">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => history.back()}
-            className="flex items-center text-gray-400 hover:text-white"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Shop
-          </button>
-          <h1 className="ml-4 text-3xl font-bold text-white">Checkout</h1>
+        <div className="flex items-center justify-between mb-10 px-4 sm:px-6 lg:px-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary-500/10 dark:bg-primary-400/10">
+              <ShoppingCart className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+              Checkout
+            </h1>
+          </div>
         </div>
+
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Column */}

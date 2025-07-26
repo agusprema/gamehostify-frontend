@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { Search, RefreshCw } from "lucide-react";
+import { Search, RefreshCw, ReceiptText } from "lucide-react";
 import QRCode from "react-qr-code";
 import Wrapper from "@/components/ui/Wrapper";
 import InvoiceSkeleton from "./InvoiceSkeleton";
@@ -168,9 +168,16 @@ export default function InvoiceClient({
   return (
     <Wrapper>
       <div className="max-w-4xl mx-auto px-4 py-12 transition-colors duration-300">
-        <h1 className="text-3xl font-extrabold text-center bg-gradient-to-r from-primary-400 to-pink-400 bg-clip-text text-transparent mb-8">
-          Cek Status Invoice
-        </h1>
+        <div className="flex items-center justify-between mb-10 px-4 sm:px-6 lg:px-0">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary-500/10 dark:bg-primary-400/10">
+              <ReceiptText className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+              Cek Status Invoice
+            </h1>
+          </div>
+        </div>
 
         {/* Search form */}
         <form
