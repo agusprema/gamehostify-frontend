@@ -22,11 +22,11 @@ const GameFilterBar: React.FC<GameFilterBarProps> = ({
   isProcessing = false,
 }) => {
   return (
-    <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mx-4">
+    <section className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mx-4" aria-label="Game Filter Bar" role="search">
       {/* Search Input */}
-      <div className="relative w-full md:w-1/2">
+      <div className="relative w-full md:w-1/2" role="searchbox">
         <input
-          type="text"
+          type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Cari game..."
@@ -38,6 +38,7 @@ const GameFilterBar: React.FC<GameFilterBarProps> = ({
             focus:border-primary-500 focus:ring-2 focus:ring-primary-500 
             focus:outline-none
           "
+          aria-label="Cari game"
         />
         {isProcessing && (
           <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-primary-500" />
@@ -56,6 +57,7 @@ const GameFilterBar: React.FC<GameFilterBarProps> = ({
             focus:border-primary-500 focus:ring-2 focus:ring-primary-500 
             focus:outline-none
           "
+          aria-label="Pilih kategori game"
         >
           <option value="">Semua Kategori</option>
           {categories.map((cat) => (
@@ -65,7 +67,7 @@ const GameFilterBar: React.FC<GameFilterBarProps> = ({
           ))}
         </select>
       </div>
-    </div>
+    </section>
   );
 };
 

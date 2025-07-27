@@ -25,10 +25,13 @@ export default function Faq({
   containerClassName = "",
 }: FaqProps) {
   return (
-    <section className={`py-16 ${containerClassName}`}>
+    <section
+      className={`py-16 ${containerClassName}`}
+      aria-label="Frequently Asked Questions"
+      role="region"
+    >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <FaqHeader title={title} subtitle={subtitle} />
-
         {variant === "accordion" ? (
           <FaqAccordion items={items} />
         ) : (

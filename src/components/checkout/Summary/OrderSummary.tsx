@@ -13,18 +13,18 @@ interface Props {
   isLoading?: boolean;
 }
 
-export default function OrderSummary({
+const OrderSummary: React.FC<Props> = React.memo(({
   items,
   total,
   selectedChannel,
   paymentMethods,
   isLoading = false,
-}: Props) {
+}) => {
   if (isLoading) {
     return (
-      <div className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24">
-        <h2 className="text-xl text-gray-900 dark:text-white mb-6 flex items-center">
-          <Group className="h-6 w-6 mr-2 text-yellow-500" />
+      <aside className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24" aria-labelledby="order-summary-heading">
+        <h2 id="order-summary-heading" className="text-xl text-gray-900 dark:text-white mb-6 flex items-center">
+          <Group className="h-6 w-6 mr-2 text-yellow-500" aria-hidden="true" />
           Order Summary
         </h2>
 
@@ -49,7 +49,7 @@ export default function OrderSummary({
           <div className="w-full h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
           <div className="w-2/3 h-6 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
         </div>
-      </div>
+      </aside>
     );
   }
 
@@ -64,15 +64,15 @@ export default function OrderSummary({
   const grandTotal = total + fee;
 
   return (
-    <div className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24">
-      <h2 className="text-xl text-gray-900 dark:text-white mb-6 flex items-center">
-        <Group className="h-6 w-6 mr-2 text-yellow-500" />
+    <aside className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24" aria-labelledby="order-summary-heading">
+      <h2 id="order-summary-heading" className="text-xl text-gray-900 dark:text-white mb-6 flex items-center">
+        <Group className="h-6 w-6 mr-2 text-yellow-500" aria-hidden="true" />
         Order Summary
       </h2>
 
-      <div className="space-y-4 mb-6">
+      <ul className="space-y-4 mb-6">
         {items.map((item) => (
-          <div
+          <li
             key={item.name}
             className="flex items-center gap-4 bg-white/50 dark:bg-gray-800/40 backdrop-blur-sm rounded-lg p-4"
           >
@@ -90,9 +90,9 @@ export default function OrderSummary({
                 Rp{item.subtotal.toLocaleString("id-ID")}
               </p>
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
         <div className="flex justify-between text-sm text-gray-700 dark:text-gray-400">
@@ -112,6 +112,8 @@ export default function OrderSummary({
           </span>
         </div>
       </div>
-    </div>
+    </aside>
   );
-}
+});
+
+export default OrderSummary;

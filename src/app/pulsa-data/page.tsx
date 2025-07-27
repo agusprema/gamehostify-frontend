@@ -1,6 +1,8 @@
+
 import PulsaDatapage from "@/components/pulsa-data/PulsaDataPage";
 import PageTransition from "@/components/animations/PageTransition";
 import { Metadata } from "next";
+import { fetchJson } from "@/lib/fetchJson";
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
@@ -50,24 +52,14 @@ export const metadata: Metadata = {
 
 export const viewport = { themeColor: "#6b21a8" };
 
-async function fetchOperators() {
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
-  try {
-    const res = await fetch(`${API}api/v1/operators`, {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) throw new Error("Failed to fetch operators");
-    const json = await res.json();
-    return json?.data?.operators ?? [];
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-}
 
 export default async function PulsaDataPage() {
-  const operators = await fetchOperators();
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+  const json = await fetchJson(
+    `${API}api/v1/operators`,
+    { headers: { Accept: "application/json" }, next: { revalidate: 3600 } }
+  );
+  const operators = json?.data?.operators ?? null;
   if (!operators) {
     return (
       <PageTransition>
@@ -83,3 +75,4 @@ export default async function PulsaDataPage() {
     </PageTransition>
   );
 }
+

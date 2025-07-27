@@ -87,89 +87,91 @@ const whyChooseUs = [
 export default function GameTopUpPage({ games, nextCursor, hasMore }: GameTopUpPageProps) {
   return (
     <Wrapper>
-      {/* Header */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-gradient-to-r from-primary-400 to-primary-600 p-4 rounded-2xl inline-block mb-6 shadow-lg shadow-primary-500/30">
-            <Gamepad2 className="h-8 w-8 text-white" />
+      <main aria-labelledby="game-topup-heading">
+        {/* Header */}
+        <section className="relative py-16 transition-colors" aria-label="Header Game Top-up">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="bg-gradient-to-r from-primary-400 to-primary-600 p-4 rounded-2xl inline-block mb-6 shadow-lg shadow-primary-500/30">
+              <Gamepad2 className="h-8 w-8 text-white" aria-hidden="true" />
+            </div>
+            <h1 id="game-topup-heading" className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Game Top-up & Credits
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+              Top-up game lebih mudah dengan harga bersaing dan pengiriman instan.
+              Kami mendukung berbagai metode pembayaran terpercaya untuk pengalaman
+              bermain yang bebas hambatan.
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Game Top-up & Credits
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Top-up game lebih mudah dengan harga bersaing dan pengiriman instan.
-            Kami mendukung berbagai metode pembayaran terpercaya untuk pengalaman
-            bermain yang bebas hambatan.
-          </p>
-        </div>
-      </section>
+        </section>
 
-      {/* Why Choose Us */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold mb-3 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-              Why Choose Our Service?
+        {/* Why Choose Us */}
+        <section className="relative py-16 transition-colors" aria-labelledby="why-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 id="why-heading" className="text-3xl md:text-4xl font-extrabold mb-3 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+                Why Choose Our Service?
+              </h2>
+              <div className="w-24 h-1 mx-auto bg-gradient-to-r from-primary-400 to-primary-600 rounded-full mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto text-sm md:text-base">
+                Alasan mengapa layanan top-up kami menjadi pilihan gamer.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {whyChooseUs.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={i}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-500/40 transition text-center shadow-sm"
+                  >
+                    <Icon className="h-8 w-8 text-primary-500 mx-auto mb-3" aria-hidden="true" />
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{item.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{item.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Games */}
+        <section className="relative py-16 transition-colors" aria-labelledby="games-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
+            <h2 id="games-heading" className="text-3xl md:text-4xl font-extrabold mb-3 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+              Select Your Game
             </h2>
             <div className="w-24 h-1 mx-auto bg-gradient-to-r from-primary-400 to-primary-600 rounded-full mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto text-sm md:text-base">
-              Alasan mengapa layanan top-up kami menjadi pilihan gamer.
+              Pilih game favorit Anda dari koleksi kami yang selalu up-to-date.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {whyChooseUs.map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-500/40 transition text-center shadow-sm"
-                >
-                  <Icon className="h-8 w-8 text-primary-500 mx-auto mb-3" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{item.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">{item.description}</p>
-                </div>
-              );
-            })}
+          <GameTopUp games={games} nextCursor={nextCursor} hasMore={hasMore} />
+        </section>
+
+        {/* Testimonials */}
+        <section className="relative py-16 transition-colors" aria-labelledby="testi-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Testimonials
+              testimonials={testimonials}
+              title="What Gamers Say"
+              subtitle="Pendapat pelanggan tentang layanan top-up kami."
+            />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Games */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-3 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-            Select Your Game
-          </h2>
-          <div className="w-24 h-1 mx-auto bg-gradient-to-r from-primary-400 to-primary-600 rounded-full mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto text-sm md:text-base">
-            Pilih game favorit Anda dari koleksi kami yang selalu up-to-date.
-          </p>
-        </div>
-        <GameTopUp games={games} nextCursor={nextCursor} hasMore={hasMore} />
-      </section>
-
-      {/* Testimonials */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Testimonials
-            testimonials={testimonials}
-            title="What Gamers Say"
-            subtitle="Pendapat pelanggan tentang layanan top-up kami."
-          />
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Faq
-            items={FAQ_ITEMS}
-            variant="accordion"
-            title="Frequently Asked Questions"
-            subtitle="Semua yang perlu Anda ketahui tentang top-up game"
-          />
-        </div>
-      </section>
+        {/* FAQ */}
+        <section className="relative py-16 transition-colors" aria-labelledby="faq-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Faq
+              items={FAQ_ITEMS}
+              variant="accordion"
+              title="Frequently Asked Questions"
+              subtitle="Semua yang perlu Anda ketahui tentang top-up game"
+            />
+          </div>
+        </section>
+      </main>
     </Wrapper>
   );
 }

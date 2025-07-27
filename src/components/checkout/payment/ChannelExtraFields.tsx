@@ -197,16 +197,19 @@ const ChannelExtraFields: React.FC<ChannelExtraFieldsProps> = ({
   if (fieldDefs.length === 0) return null;
 
   return (
-    <div className="mb-4 space-y-4">
+    <fieldset className="mb-4 space-y-4" aria-labelledby="extra-fields-heading">
+      <legend id="extra-fields-heading" className="sr-only">Informasi Tambahan Pembayaran</legend>
       {fieldDefs.map(({ name, label, placeholder, type }) => {
         const val = String(getPathValue(name, channelProperties) ?? "");
         const hasErr = !!mergedErrors[name];
         return (
           <div key={name}>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {label}
             </label>
             <input
+              id={name}
+              name={name}
               type={type || "text"}
               required
               value={val}
@@ -217,14 +220,18 @@ const ChannelExtraFields: React.FC<ChannelExtraFieldsProps> = ({
                 ${hasErr ? "border-red-500 focus:ring-red-500 dark:border-red-500" : ""}
               `}
               placeholder={placeholder}
+              aria-invalid={hasErr}
+              aria-describedby={hasErr ? `${name}-error` : undefined}
             />
             {hasErr && (
-              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{mergedErrors[name]}</p>
+              <p id={`${name}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                {mergedErrors[name]}
+              </p>
             )}
           </div>
         );
       })}
-    </div>
+    </fieldset>
   );
 };
 

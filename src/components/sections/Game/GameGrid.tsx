@@ -89,7 +89,7 @@ const GameGrid: React.FC<Props> = ({
     w < 640 ? 2 : w < 768 ? 3 : w < 1024 ? 4 : 6;
 
   return (
-    <div style={{ height, overflow: "hidden" }}>
+    <section style={{ height, overflow: "hidden" }} aria-label="Game List" role="region">
       <AutoSizer disableHeight>
         {({ width }) => {
           const colCount = getColumnCount(width);
@@ -127,7 +127,7 @@ const GameGrid: React.FC<Props> = ({
           );
         }}
       </AutoSizer>
-    </div>
+    </section>
   );
 };
 

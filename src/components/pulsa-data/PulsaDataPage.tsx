@@ -69,90 +69,92 @@ const whyChooseUs = [
 export default function PulsaDataPage({ operators }: PulsaDataPageProps) {
   return (
     <Wrapper>
-      {/* Header */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-gradient-to-r from-primary-400 to-primary-600 p-4 rounded-2xl inline-block mb-6 shadow-lg shadow-primary-500/30">
-            <div className="flex items-center justify-center gap-2 text-white">
-              <Smartphone className="h-8 w-8" />
-              <Wifi className="h-8 w-8" />
+      <main aria-labelledby="pulsa-heading">
+        {/* Header */}
+        <section className="relative py-16 transition-colors" aria-label="Header Pulsa Data">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="bg-gradient-to-r from-primary-400 to-primary-600 p-4 rounded-2xl inline-block mb-6 shadow-lg shadow-primary-500/30">
+              <div className="flex items-center justify-center gap-2 text-white">
+                <Smartphone className="h-8 w-8" aria-hidden="true" />
+                <Wifi className="h-8 w-8" aria-hidden="true" />
+              </div>
+            </div>
+            <h1 id="pulsa-heading" className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Pulsa & Paket Data
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+              Isi ulang pulsa dan paket data semua operator Indonesia dengan harga terbaik dan pengiriman instan.
+            </p>
+          </div>
+        </section>
+
+        {/* Why Choose Us */}
+        <section className="relative py-16 transition-colors" aria-labelledby="why-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 id="why-heading" className="text-3xl md:text-4xl font-extrabold mb-3 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+                Kenapa Pilih Kami?
+              </h2>
+              <div className="w-24 h-1 mx-auto bg-gradient-to-r from-primary-400 to-primary-600 rounded-full mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto text-sm md:text-base">
+                Alasan kenapa layanan top-up kami dipercaya banyak pelanggan.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {whyChooseUs.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={i}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-500/40 transition text-center shadow-sm"
+                  >
+                    <Icon className="h-8 w-8 text-primary-500 mx-auto mb-3" aria-hidden="true" />
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{item.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">{item.description}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Pulsa & Paket Data
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Isi ulang pulsa dan paket data semua operator Indonesia dengan harga terbaik dan pengiriman instan.
-          </p>
-        </div>
-      </section>
+        </section>
 
-      {/* Why Choose Us */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-extrabold mb-3 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-              Kenapa Pilih Kami?
+        {/* Operator Picker */}
+        <section className="relative py-16 transition-colors" aria-labelledby="operator-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
+            <h2 id="operator-heading" className="text-3xl md:text-4xl font-extrabold mb-3 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+              Pilih Operator
             </h2>
             <div className="w-24 h-1 mx-auto bg-gradient-to-r from-primary-400 to-primary-600 rounded-full mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto text-sm md:text-base">
-              Alasan kenapa layanan top-up kami dipercaya banyak pelanggan.
+              Pilih operator dan paket yang sesuai kebutuhan Anda.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {whyChooseUs.map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-primary-500/40 transition text-center shadow-sm"
-                >
-                  <Icon className="h-8 w-8 text-primary-500 mx-auto mb-3" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{item.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">{item.description}</p>
-                </div>
-              );
-            })}
+          <PulsaTopUp operators={operators} />
+        </section>
+
+        {/* Testimonials */}
+        <section className="relative py-16 transition-colors" aria-labelledby="testi-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Testimonials
+              testimonials={testimonials}
+              title="What Gamers Say"
+              subtitle="Ulasan pelanggan kami tentang layanan pulsa & data."
+            />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Operator Picker */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-3 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-            Pilih Operator
-          </h2>
-          <div className="w-24 h-1 mx-auto bg-gradient-to-r from-primary-400 to-primary-600 rounded-full mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto text-sm md:text-base">
-            Pilih operator dan paket yang sesuai kebutuhan Anda.
-          </p>
-        </div>
-        <PulsaTopUp operators={operators} />
-      </section>
-
-      {/* Testimonials */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Testimonials
-            testimonials={testimonials}
-            title="What Gamers Say"
-            subtitle="Ulasan pelanggan kami tentang layanan pulsa & data."
-          />
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="relative py-16 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Faq
-            items={FAQ_ITEMS}
-            variant="accordion"
-            title="Frequently Asked Questions"
-            subtitle="Semua yang perlu kamu tahu tentang isi ulang pulsa & data."
-          />
-        </div>
-      </section>
+        {/* FAQ */}
+        <section className="relative py-16 transition-colors" aria-labelledby="faq-heading">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Faq
+              items={FAQ_ITEMS}
+              variant="accordion"
+              title="Frequently Asked Questions"
+              subtitle="Semua yang perlu kamu tahu tentang isi ulang pulsa & data."
+            />
+          </div>
+        </section>
+      </main>
     </Wrapper>
   );
 }

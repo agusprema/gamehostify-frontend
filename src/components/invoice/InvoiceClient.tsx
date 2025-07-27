@@ -167,39 +167,46 @@ export default function InvoiceClient({
 
   return (
     <Wrapper>
-      <div className="max-w-4xl mx-auto px-4 py-12 transition-colors duration-300">
-        <div className="flex items-center justify-between mb-10 px-4 sm:px-6 lg:px-0">
+      <main className="max-w-4xl mx-auto px-4 py-12 transition-colors duration-300" aria-labelledby="invoice-heading">
+        <header className="flex items-center justify-between mb-10 px-4 sm:px-6 lg:px-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary-500/10 dark:bg-primary-400/10">
-              <ReceiptText className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              <ReceiptText className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <h1 id="invoice-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
               Cek Status Invoice
             </h1>
           </div>
-        </div>
+        </header>
 
         {/* Search form */}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col sm:flex-row gap-3 mb-8"
+          role="search"
+          aria-label="Cari Invoice"
         >
+          <label htmlFor="refid" className="sr-only">Reference ID</label>
           <input
+            id="refid"
             type="text"
             value={refid}
             onChange={(e) => setRefid(e.target.value)}
             placeholder="Masukkan Reference ID..."
             className="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 transition"
+            autoComplete="off"
+            aria-label="Reference ID"
           />
           <button
             type="submit"
             disabled={loading}
             className="flex items-center justify-center gap-2 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-5 py-3 rounded-lg font-semibold shadow-md transition disabled:opacity-50"
+            aria-label="Cek Invoice"
           >
             {loading ? (
-              <RefreshCw className="animate-spin h-5 w-5" />
+              <RefreshCw className="animate-spin h-5 w-5" aria-hidden="true" />
             ) : (
-              <Search className="h-5 w-5" />
+              <Search className="h-5 w-5" aria-hidden="true" />
             )}
             Cek Invoice
           </button>
@@ -207,7 +214,7 @@ export default function InvoiceClient({
 
         {/* Error */}
         {error && (
-          <div className="bg-red-500/10 text-red-500 dark:text-red-400 border border-red-300 dark:border-red-500/30 px-4 py-3 rounded-lg mb-6 shadow">
+          <div className="bg-red-500/10 text-red-500 dark:text-red-400 border border-red-300 dark:border-red-500/30 px-4 py-3 rounded-lg mb-6 shadow" role="alert">
             {error}
           </div>
         )}
@@ -217,9 +224,9 @@ export default function InvoiceClient({
 
         {/* Invoice Detail */}
         {invoice && (
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 space-y-6 shadow-lg transition-colors">
+          <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 space-y-6 shadow-lg transition-colors" aria-labelledby="invoice-detail-heading">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Reference ID</p>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
@@ -230,13 +237,14 @@ export default function InvoiceClient({
                 className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium border ${statusColor(
                   invoice.status
                 )}`}
+                aria-label={`Status: ${readableStatus(invoice.status)}`}
               >
                 {readableStatus(invoice.status)}
               </span>
-            </div>
+            </header>
 
             {/* Info Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <section className="grid grid-cols-1 sm:grid-cols-3 gap-4" aria-label="Info Invoice">
               <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-center">
                 <p className="text-sm text-gray-600 dark:text-gray-400">Jumlah</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">
@@ -255,13 +263,11 @@ export default function InvoiceClient({
                   {fmtDateTime(invoice.created_at)}
                 </p>
               </div>
-            </div>
+            </section>
 
             {/* Payment Actions */}
-            {["WAITING_PAYMENT", "ACCEPTING_PAYMENTS", "REQUIRES_ACTION"].includes(
-              invoice.status
-            ) && (
-              <div className="mt-6 space-y-4">
+            {["WAITING_PAYMENT", "ACCEPTING_PAYMENTS", "REQUIRES_ACTION"].includes(invoice.status) && (
+              <section className="mt-6 space-y-4" aria-label="Aksi Pembayaran">
                 {invoice.actions?.map((action, i) => {
                   const type = action.descriptor?.toUpperCase() ?? "";
 
@@ -299,31 +305,31 @@ export default function InvoiceClient({
 
                   return null;
                 })}
-              </div>
+              </section>
             )}
 
             {/* Polling Indicator */}
             {polling && (
-              <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-300 text-sm">
-                <RefreshCw className="animate-spin h-4 w-4" />
+              <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-300 text-sm" role="status" aria-live="polite">
+                <RefreshCw className="animate-spin h-4 w-4" aria-hidden="true" />
                 Memeriksa status pembayaran...
               </div>
             )}
 
             {/* Items */}
-            <div>
-              <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+            <section aria-labelledby="produk-heading">
+              <h2 id="produk-heading" className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
                 Daftar Produk
               </h2>
               <div className="overflow-x-auto border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm">
-                <table className="min-w-full text-sm text-gray-700 dark:text-gray-300">
+                <table className="min-w-full text-sm text-gray-700 dark:text-gray-300" aria-describedby="produk-heading">
                   <thead className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                     <tr>
-                      <th className="px-4 py-2 text-left">Package</th>
-                      <th className="px-4 py-2 text-left">Product</th>
-                      <th className="px-4 py-2 text-center">Qty</th>
-                      <th className="px-4 py-2 text-center">Status</th>
-                      <th className="px-4 py-2 text-center">Delivered</th>
+                      <th className="px-4 py-2 text-left" scope="col">Package</th>
+                      <th className="px-4 py-2 text-left" scope="col">Product</th>
+                      <th className="px-4 py-2 text-center" scope="col">Qty</th>
+                      <th className="px-4 py-2 text-center" scope="col">Status</th>
+                      <th className="px-4 py-2 text-center" scope="col">Delivered</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -342,6 +348,7 @@ export default function InvoiceClient({
                             className={`px-2 py-1 rounded-full text-xs border ${statusColor(
                               item.status
                             )}`}
+                            aria-label={`Status: ${readableStatus(item.status)}`}
                           >
                             {readableStatus(item.status)}
                           </span>
@@ -354,7 +361,7 @@ export default function InvoiceClient({
                   </tbody>
                 </table>
               </div>
-            </div>
+            </section>
 
             {/* Manual Refresh */}
             {!isFinal(invoice.status) && (
@@ -371,9 +378,9 @@ export default function InvoiceClient({
                 </button>
               </div>
             )}
-          </div>
+          </section>
         )}
-      </div>
+      </main>
     </Wrapper>
   );
 }

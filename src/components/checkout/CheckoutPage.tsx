@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 
 import StepIndicator from "@/components/checkout/Steps/StepIndicator";
 import CustomerInfo from "@/components/checkout/Steps/CustomerInfo";
@@ -18,8 +18,7 @@ import { useCheckoutState } from "./hooks/useCheckoutState";
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const referenceId = searchParams.get("reference_id") ?? undefined;
-
-  // ✅ Validasi status agar cocok dengan union type
+  // Validasi status agar cocok dengan union type
   const rawStatus = searchParams.get("status");
   const statusas = ["success", "cancel", "failed", "expired"].includes(rawStatus || "")
     ? (rawStatus as "success" | "cancel" | "failed" | "expired")
@@ -51,8 +50,8 @@ export default function CheckoutPage() {
     initialStatus: statusas,
   });
 
+  // Main content sesuai step
   let mainContent: React.ReactNode = null;
-  // Jika cart kosong, tampilkan desain keranjang kosong
   if (step === "info") {
     mainContent = (
       <CustomerInfo
@@ -63,9 +62,11 @@ export default function CheckoutPage() {
       />
     );
 
-    if (!items || items.length === 0 ) {
-      mainContent = (
-        <div className="max-w-xl mx-auto px-4 py-16 flex flex-col items-center justify-center text-center">
+    // Return lebih awal jika cart kosong
+    if (!items || items.length === 0) {
+      return (
+        <Wrapper className="py-10">
+          <div className="max-w-xl mx-auto px-4 py-16 flex flex-col items-center justify-center text-center">
             <ShoppingCart className="h-20 w-20 text-primary-500 mb-6" />
             <h2 className="text-2xl font-bold mb-2 text-primary-600 dark:text-primary-400">Keranjang Kosong</h2>
             <p className="mb-6 text-gray-500 dark:text-gray-300">Belum ada produk yang ditambahkan ke keranjang.<br />Silakan pilih produk terlebih dahulu sebelum checkout.</p>
@@ -76,6 +77,7 @@ export default function CheckoutPage() {
               Kembali ke Shop
             </Link>
           </div>
+        </Wrapper>
       );
     }
   } else if (step === "payment") {
@@ -110,29 +112,28 @@ export default function CheckoutPage() {
 
   return (
     <Wrapper className="py-10">
-      <div className="max-w-5xl mx-auto px-4">
+      <main className="max-w-5xl mx-auto px-4" aria-labelledby="checkout-heading">
         {/* Header */}
-        <div className="flex items-center justify-between mb-10 px-4 sm:px-6 lg:px-0">
+        <header className="flex items-center justify-between mb-10 px-4 sm:px-6 lg:px-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary-500/10 dark:bg-primary-400/10">
-              <ShoppingCart className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+              <ShoppingCart className="w-6 h-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <h1 id="checkout-heading" className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
               Checkout
             </h1>
           </div>
-        </div>
-
+        </header>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Column */}
-          <div className="lg:col-span-2 space-y-6 rounded-xl p-6 border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/40 backdrop-blur-md shadow-md">
+          <section className="lg:col-span-2 space-y-6 rounded-xl p-6 border border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/40 backdrop-blur-md shadow-md" aria-label="Checkout Steps">
             <StepIndicator step={step} />
             {mainContent}
-          </div>
+          </section>
 
           {/* Order Summary */}
-          <div className="sticky top-24 h-fit">
+          <aside className="sticky top-24 h-fit" aria-label="Ringkasan Pesanan">
             <OrderSummary
               items={items}
               total={total}
@@ -140,9 +141,9 @@ export default function CheckoutPage() {
               paymentMethods={paymentMethods}
               isLoading={isInitialLoading}
             />
-          </div>
+          </aside>
         </div>
-      </div>
+      </main>
     </Wrapper>
   );
 }

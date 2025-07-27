@@ -57,6 +57,10 @@ export function PulsaModal({
 
   if (!isOpen || !operator) return null;
 
+  // Accessibility: unique ids for modal title/desc
+  const modalTitleId = `pulsa-modal-title-${inputId}`;
+  const modalDescId = `pulsa-modal-desc-${inputId}`;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -65,6 +69,11 @@ export function PulsaModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={modalTitleId}
+          aria-describedby={modalDescId}
+          tabIndex={-1}
         >
           {/* Backdrop */}
           <motion.div
@@ -73,6 +82,7 @@ export function PulsaModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            aria-hidden="true"
           />
           
           {/* Modal Content */}
@@ -84,6 +94,9 @@ export function PulsaModal({
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 25 }}
           >
+            {/* Modal header should use the modalTitleId for aria-labelledby */}
+            <div id={modalTitleId} className="sr-only">Isi Pulsa & Paket Data</div>
+            <div id={modalDescId} className="sr-only">Formulir pembelian pulsa dan paket data untuk operator terpilih.</div>
             <PulsaModalHeader operator={operator} selectedPkg={selectedPkg} onClose={onClose} />
             <PulsaModalPhoneInput
               phone={phone}
@@ -93,11 +106,13 @@ export function PulsaModal({
               operator={operator}
             />
             <PulsaModalTabs tab={tab} setTab={setTab} />
+
             <PulsaModalPackages
               currentPackages={currentPackages}
               selectedPkg={selectedPkg}
               setSelectedPkg={setSelectedPkg}
             />
+            
             <PulsaModalFooter
               submitting={submitting}
               selectedPkg={selectedPkg}

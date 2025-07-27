@@ -5,6 +5,7 @@ import ProductGrid from "@/components/sections/Products/ProductGrid";
 import PageTransition from "@/components/animations/PageTransition";
 import Wrapper from "@/components/ui/Wrapper";
 import { normalizeSlidesPayload } from "@/lib/slide/normalize";
+import { fetchJson } from "@/lib/fetchJson";
 import type { Slide } from "@/components/sections/Hero/slide";
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
@@ -101,24 +102,12 @@ export const viewport = { themeColor: "#6b21a8" };
 export default async function HomePage() {
   const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
-  // Helper fetcher
-  async function fetchJson(url: string) {
-    try {
-      const res = await fetch(url, {
-        headers: { Accept: 'application/json' },
-        next: { revalidate: 3600 },
-      });
-      return await res.json();
-    } catch {
-      return {};
-    }
-  }
 
   // Fetch paralel & error safe
   const [jsonGames, jsonOperators, jsonSlider] = await Promise.all([
-    fetchJson(API + 'api/v1/games?per_page=6'),
-    fetchJson(API + 'api/v1/operators?per_page=6'),
-    fetchJson(API + 'api/v1/contents/slider'),
+    fetchJson(API + 'api/v1/games?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson(API + 'api/v1/operators?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson(API + 'api/v1/contents/slider', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
   ]);
 
   const dataGames = jsonGames?.data ?? {};

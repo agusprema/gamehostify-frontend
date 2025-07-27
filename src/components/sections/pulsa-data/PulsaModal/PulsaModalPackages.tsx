@@ -20,7 +20,7 @@ export default function PulsaModalPackages({
           Tidak ada paket.
         </p>
       ) : (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="listbox" aria-label="Pilih Paket Pulsa/Data">
           {currentPackages.map((p) => {
             const isSelected = selectedPkg?.id === p.id;
             const buttonClass = isSelected
@@ -28,11 +28,13 @@ export default function PulsaModalPackages({
               : "border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800/60 hover:border-primary-400/40 cursor-pointer";
 
             return (
-              <li key={p.id}>
+              <li key={p.id} role="option" aria-selected={isSelected} tabIndex={0}>
                 <button
                   type="button"
                   onClick={() => setSelectedPkg(p)}
                   className={`w-full flex items-center justify-between rounded-lg px-4 py-3 border text-left transition ${buttonClass}`}
+                  aria-label={`Pilih paket ${p.name} seharga ${formatIDR(p.final_price)}`}
+                  aria-pressed={isSelected}
                 >
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {p.name}

@@ -10,7 +10,7 @@ const stats = [
 
 const HeroStats: React.FC = () => {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
+    <section className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12" aria-label="Statistik Hero" role="region">
       {stats.map((item, i) => (
         <div
           key={i}
@@ -20,14 +20,14 @@ const HeroStats: React.FC = () => {
             hover:border-primary-500 transition text-center shadow-sm dark:shadow-none
           "
         >
-          <item.icon className="h-6 w-6 text-primary-600 dark:text-primary-400 mx-auto mb-2" />
+          <item.icon className="h-6 w-6 text-primary-600 dark:text-primary-400 mx-auto mb-2" aria-hidden="true" />
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {item.value}
           </p>
           <p className="text-gray-600 dark:text-gray-400 text-sm">{item.label}</p>
         </div>
       ))}
-    </div>
+    </section>
   );
 };
 

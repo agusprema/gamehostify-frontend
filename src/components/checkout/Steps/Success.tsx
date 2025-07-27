@@ -15,8 +15,8 @@ interface Props {
   status?: "success" | "cancel" | "failed" | "expired";
 }
 
-export default function Success({ orderId, items, status = "success" }: Props) {
-  let icon = <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" />;
+const Success: React.FC<Props> = React.memo(({ orderId, items, status = "success" }) => {
+  let icon = <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" aria-hidden="true" />;
   let title = "Payment Successful!";
   let message = "Your order has been processed successfully.";
   let textColor = "text-gray-600 dark:text-gray-400";
@@ -26,26 +26,28 @@ export default function Success({ orderId, items, status = "success" }: Props) {
       : "You will receive a confirmation email shortly.";
 
   if (status === "cancel") {
-    icon = <XCircle className="h-16 w-16 text-yellow-500 mx-auto mb-6" />;
+    icon = <XCircle className="h-16 w-16 text-yellow-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Cancelled";
     message = "You cancelled the payment process.";
     orderNote = "You can try again or choose another payment method.";
   } else if (status === "failed") {
-    icon = <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-6" />;
+    icon = <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Failed";
     message = "We couldn’t process your payment.";
     orderNote = "Please check your payment method or try again.";
   } else if (status === "expired") {
-    icon = <Clock className="h-16 w-16 text-orange-500 mx-auto mb-6" />;
+    icon = <Clock className="h-16 w-16 text-orange-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Expired";
     message = "The payment session has expired.";
     orderNote = "Please start a new transaction.";
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900/50 rounded-xl p-12 text-center">
+    <section className="bg-gray-100 dark:bg-gray-900/50 rounded-xl p-12 text-center" aria-labelledby="success-heading">
+      {/* Live region for screen readers */}
+      <span className="sr-only" role="status" aria-live="polite">{title} - {message}</span>
       {icon}
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+      <h2 id="success-heading" className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
         {title}
       </h2>
       <p className={`${textColor} mb-6`}>{message}</p>
@@ -57,11 +59,17 @@ export default function Success({ orderId, items, status = "success" }: Props) {
 
       <p className={`${textColor} mb-6`}>{orderNote}</p>
 
-      <button
-        className="cursor-pointer bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-3 rounded-lg font-semibold transition-all"
+      <a
+        href="/"
+        className="inline-block cursor-pointer bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-3 rounded-lg font-semibold transition-all"
+        aria-label="Continue Shopping"
+        tabIndex={0}
+        role="button"
       >
         Continue Shopping
-      </button>
-    </div>
+      </a>
+    </section>
   );
-}
+});
+
+export default Success;

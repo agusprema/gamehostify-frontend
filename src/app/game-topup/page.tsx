@@ -1,6 +1,8 @@
+
 import GameTopUpPage from '@/components/topup/GameTopUpPage';
 import PageTransition from '@/components/animations/PageTransition';
 import { Metadata } from 'next';
+import { fetchJson } from '@/lib/fetchJson';
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
@@ -53,27 +55,14 @@ export const viewport = {
   themeColor: "#6b21a8",
 };
 
-async function fetchGames() {
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
-  try {
-    const res = await fetch(
-      API + 'api/v1/games?per_page=24',
-      {
-        headers: { Accept: 'application/json' },
-        next: { revalidate: 3600 },
-      }
-    );
-    if (!res.ok) throw new Error('Failed to fetch games');
-    const json = await res.json();
-    return json?.data ?? {};
-  } catch (e) {
-    console.error(e);
-    return {};
-  }
-}
 
 export default async function TopUpPage() {
-  const data = await fetchGames();
+  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+  const json = await fetchJson(
+    API + 'api/v1/games?per_page=24',
+    { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }
+  );
+  const data = json ?? {};
   const games = data.games ?? [];
   const nextCursor = data.next_cursor ?? null;
   const hasMore = !!data.has_more;

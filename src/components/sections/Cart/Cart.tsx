@@ -73,51 +73,10 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
   useEffect(() => {
     if (!everOpened) return;
     if (typeof window === "undefined") return;
+    preloadCartChunks();
+  }, [everOpened]);
 
-    const idleCb = () => {
-      preloadCartChunks();
-      if (Date.now() - lastFetched > staleTime) {
-        fetchCart().then(() => setLastFetched(Date.now()));
-      }
-    };
-
-    let cancel: (() => void) | undefined;
-    const w = window as any;
-
-    if (typeof w.requestIdleCallback === "function") {
-      const handle = w.requestIdleCallback(idleCb, { timeout: 1500 });
-      cancel = () => {
-        if (typeof w.cancelIdleCallback === "function") {
-          w.cancelIdleCallback(handle);
-        }
-      };
-    } else {
-      const handle = setTimeout(idleCb, 1);
-      cancel = () => clearTimeout(handle);
-    }
-
-    return cancel;
-  }, [everOpened, lastFetched, staleTime, fetchCart]);
-
-  const total = cart?.total ?? 0;
-  const cartItems = useMemo(
-    () => (Array.isArray(cart?.items) ? (cart.items as BaseCartItem[]) : []),
-    [cart?.items]
-  );
-
-  const formattedTotal = useMemo(
-    () => `Rp${total.toLocaleString("id-ID")}`,
-    [total]
-  );
-
-  // Stabilize items by copying ref only when array identity changes
-  const stableItems = useMemo(() => cartItems.slice(), [cartItems]);
-
-  // Defer heavy list rendering
-  const deferredItems = useDeferredValue(stableItems);
-  const isDeferredPending = deferredItems !== stableItems;
-
-  // Lock scroll only when actually visible
+  // Lock body scroll when cart is open
   useEffect(() => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
@@ -181,10 +140,41 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
     [fetchCart, fetchQuantity, startTransition]
   );
 
+
   // Checkout
   const handleCheckout = useCallback(() => {
     onClose();
   }, [onClose]);
+
+
+  // --- Cart derived state ---
+  // Convert CartItem[] to BaseCartItem[] for compatibility
+  const toBaseCartItem = (item: any) => ({
+    name: item.name,
+    image: item.image,
+    createdAt: item.createdAt || '',
+    quantity: item.quantity,
+    subtotal: item.subtotal,
+    packages: item.packages
+      ? {
+          name: item.packages.name,
+          image: item.image, // fallback to product image
+          price: item.packages.price ?? 0,
+          amount: item.packages.amount,
+          items: item.packages.items,
+          discount_applied: item.packages.discount_applied ?? undefined,
+        }
+      : undefined,
+  });
+  const stableItems = useMemo(() => (cart?.items ?? []).map(toBaseCartItem), [cart?.items]);
+  const deferredItems = useDeferredValue(stableItems);
+  const isDeferredPending = stableItems !== deferredItems;
+  const formattedTotal = useMemo(() =>
+    cart && typeof cart.total === 'number'
+      ? `Rp${cart.total.toLocaleString('id-ID')}`
+      : '-',
+    [cart]
+  );
 
   const hasItems = stableItems.length > 0;
   const showItems = !loadingCart && hasItems;

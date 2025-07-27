@@ -14,12 +14,12 @@ export function HeroHeading({
   chips = ["Cepat", "Aman", "Harga Lokal", "Support 24/7"],
 }: HeroHeadingProps) {
   return (
-    <div className="text-center mb-10">
+    <header className="text-center mb-10" aria-labelledby="hero-title">
       {/* Icon */}
-      <Gamepad2 className="h-10 w-10 text-primary-500 mx-auto mb-4" />
+      <Gamepad2 className="h-10 w-10 text-primary-500 mx-auto mb-4" aria-hidden="true" />
 
       {/* Headline */}
-      <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 leading-tight text-gray-900 dark:text-white">
+      <h1 id="hero-title" className="text-3xl sm:text-5xl font-extrabold mb-3 leading-tight text-gray-900 dark:text-white">
         {brandName}{" "}
         <span className="bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
           {headlineAccent}
@@ -44,6 +44,6 @@ export function HeroHeading({
           ))}
         </div>
       )}
-    </div>
+    </header>
   );
 }

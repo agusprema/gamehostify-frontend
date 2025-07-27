@@ -26,9 +26,12 @@ export default function PulsaModalPhoneInput({
     setPhone(cleaned);
   };
 
+  const labelId = `${inputId}-label`;
+  const errorId = formError?.target ? `${inputId}-error` : undefined;
   return (
     <div className="mb-6">
       <label
+        id={labelId}
         htmlFor={inputId}
         className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1"
       >
@@ -38,10 +41,15 @@ export default function PulsaModalPhoneInput({
         id={inputId}
         type="tel"
         inputMode="numeric"
+        autoComplete="tel"
         placeholder={placeholder}
         value={phone}
         onChange={(e) => handleChange(e.target.value)}
         className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:border-primary-400 focus:ring-1 focus:ring-primary-400 px-4 py-2 text-gray-900 dark:text-white text-sm transition"
+        aria-labelledby={labelId}
+        aria-describedby={errorId}
+        aria-invalid={!!formError?.target}
+        aria-errormessage={errorId}
       />
       {formError?.target && <FormError messages={formError.target} />}
     </div>

@@ -21,7 +21,7 @@ interface PaymentMethodProps {
   xenditMessage?: string;
 }
 
-const PaymentMethod: React.FC<PaymentMethodProps> = ({
+const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(({
   paymentMethods,
   selectedChannel,
   setSelectedMethod,
@@ -42,23 +42,23 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       : "";
 
   return (
-    <div className="bg-white dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700 transition-colors duration-300">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-        <CreditCard className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" />
+    <section className="bg-white dark:bg-gray-900/50 rounded-xl p-6 border border-gray-200 dark:border-gray-700 transition-colors duration-300" aria-labelledby="payment-method-heading">
+      <h2 id="payment-method-heading" className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+        <CreditCard className="h-5 w-5 mr-2 text-primary-500 dark:text-primary-400" aria-hidden="true" />
         Payment Method
       </h2>
 
       <div className="space-y-4 my-4">
         {Object.entries(paymentMethods).map(([category, channels]) => (
-          <div key={category}>
-            <h3 className="text-gray-800 dark:text-white font-semibold text-sm mb-3 uppercase tracking-wider">
+          <section key={category} aria-labelledby={`category-${category}`}>
+            <h3 id={`category-${category}`} className="text-gray-800 dark:text-white font-semibold text-sm mb-3 uppercase tracking-wider">
               {category.replace("_", " ")}
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <ul className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {channels.map((channel) => {
                 const isSelected = selectedChannel === channel.code;
                 return (
-                  <div key={channel.code} className="relative">
+                  <li key={channel.code} className="relative">
                     <PaymentChannelCard
                       channel={channel}
                       category={category}
@@ -70,15 +70,15 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
                       }}
                     />
                     {isSelected && serverErrors["channel_code"] && (
-                      <p className="absolute -bottom-5 left-0 text-xs text-red-500">
+                      <p className="absolute -bottom-5 left-0 text-xs text-red-500" role="alert">
                         {serverErrors["channel_code"]}
                       </p>
                     )}
-                  </div>
+                  </li>
                 );
               })}
-            </div>
-          </div>
+            </ul>
+          </section>
         ))}
       </div>
 
@@ -90,10 +90,10 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       />
 
       {channelError && (
-        <p className="mt-2 text-xs text-red-500">{channelError}</p>
+        <p className="mt-2 text-xs text-red-500" role="alert">{channelError}</p>
       )}
 
-      <div className="flex space-x-4 mt-8">
+      <nav className="flex space-x-4 mt-8" aria-label="Payment actions">
         <button
           type="button"
           onClick={onBack}
@@ -109,9 +109,9 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
         >
           Complete Payment
         </button>
-      </div>
-    </div>
+      </nav>
+    </section>
   );
-};
+});
 
 export default PaymentMethod;

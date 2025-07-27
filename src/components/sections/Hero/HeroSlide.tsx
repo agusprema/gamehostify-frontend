@@ -36,13 +36,15 @@ const HeroSlide: React.FC<HeroSlideProps> = ({ slide }) => {
   const descPlain = descHtml == null ? slide.description ?? "" : "";
 
   return (
-    <div
+    <article
       className="
         bg-white/70 dark:bg-gray-900/70 rounded-xl overflow-hidden shadow-xl border
         border-gray-300 dark:border-gray-800
         grid grid-cols-1 md:grid-cols-2
         min-h-[420px] md:h-[420px] lg:h-[480px] xl:h-[520px]
       "
+      aria-labelledby={`hero-slide-title-${slide.id}`}
+      aria-label={slide.title}
     >
       {/* Text */}
       <div className="p-6 sm:p-8 md:p-10 flex flex-col justify-center">
@@ -55,7 +57,7 @@ const HeroSlide: React.FC<HeroSlideProps> = ({ slide }) => {
           </span>
         )}
 
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-gray-900 dark:text-white">
+        <h2 id={`hero-slide-title-${slide.id}`} className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-gray-900 dark:text-white">
           {slide.title}
         </h2>
         {slide.subtitle && (
@@ -135,7 +137,7 @@ const HeroSlide: React.FC<HeroSlideProps> = ({ slide }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-l from-white/30 dark:from-black/30 to-white/60 dark:to-black/70" />
       </div>
-    </div>
+    </article>
   );
 };
 

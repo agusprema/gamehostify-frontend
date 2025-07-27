@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useRef, useState, useLayoutEffect } from "react";
+import React, { useMemo, useRef, useState, useLayoutEffect, RefObject } from "react";
 import CartItem from "./CartItem";
 import type { BaseCartItem } from "./types";
 
@@ -18,7 +18,7 @@ export default React.memo(function CartItems({
   removingId,
   onRemove,
 }: CartItemsProps) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLUListElement | null>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [height, setHeight] = useState(0);
 
@@ -77,10 +77,10 @@ export default React.memo(function CartItems({
   }, [items, slice, useVirtual, removingId, onRemove]);
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-5">
-      {useVirtual && padTop > 0 && <div style={{ height: padTop }} />}
+    <ul ref={containerRef} className="flex flex-col gap-5" aria-label="Cart Items">
+      {useVirtual && padTop > 0 && <li style={{ height: padTop }} />}
       {renderItems}
-      {useVirtual && padBottom > 0 && <div style={{ height: padBottom }} />}
-    </div>
+      {useVirtual && padBottom > 0 && <li style={{ height: padBottom }} />}
+    </ul>
   );
 });

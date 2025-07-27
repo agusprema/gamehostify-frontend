@@ -61,7 +61,7 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
   };
 
   return (
-    <section className="py-8">
+    <section className="py-8" aria-label="Pulsa & Paket Data">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <OperatorGrid
           operators={operators}
@@ -80,6 +80,7 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
             className="group inline-flex items-center px-10 py-4 rounded-xl font-semibold 
               text-white dark:text-white bg-gradient-to-r from-primary-500 to-primary-700 
               hover:scale-105 transition"
+            aria-label="Lihat semua produk pulsa dan data"
           >
             <span className="pr-2">Lihat Semua Produk</span>
             <svg
@@ -90,6 +91,7 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
             >
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />

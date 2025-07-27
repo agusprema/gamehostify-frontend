@@ -9,10 +9,13 @@ interface ProcessingProps {
   onPaid: () => void;
 }
 
-export default function Processing({ transaction, onPaid }: ProcessingProps) {
+const Processing: React.FC<ProcessingProps> = React.memo(({ transaction, onPaid }) => {
   return (
-    <div className="bg-white dark:bg-gray-900/50 p-8 rounded-xl text-center text-gray-900 dark:text-white transition-colors duration-300">
+    <section className="bg-white dark:bg-gray-900/50 p-8 rounded-xl text-center text-gray-900 dark:text-white transition-colors duration-300" aria-labelledby="processing-heading">
+      <h2 id="processing-heading" className="text-xl font-bold mb-6">Waiting for Payment</h2>
       <WaitingForPayment transaction={transaction} onPaid={onPaid} />
-    </div>
+    </section>
   );
-}
+});
+
+export default Processing;

@@ -65,13 +65,15 @@ export default function CustomerInfoForm({
   const hasServerPhone = !!serverErrors.phone;
 
   return (
-    <form
-      ref={formRef}
-      onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6"
-      noValidate
-      autoComplete="on"
-    >
+    <>
+      <h2 className="text-xl font-bold mb-4">Informasi Pelanggan</h2>
+      <form
+        ref={formRef}
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-6"
+        noValidate
+        autoComplete="on"
+      >
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name *</label>
@@ -211,5 +213,6 @@ export default function CustomerInfoForm({
         {isSubmitting ? "Validating..." : "Continue to Payment"}
       </button>
     </form>
+    </>
   );
 }

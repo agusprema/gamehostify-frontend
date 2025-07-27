@@ -88,23 +88,28 @@ const Hero: React.FC<HeroProps> = ({ slider }) => {
     return () => stopAuto();
   }, [startAuto, stopAuto, slides.length]);
 
-  const handleNext = () => {
+
+  // Navigation handlers with useCallback for performance
+  const handleNext = useCallback(() => {
     setCurrentSlide((p) => (p + 1) % slides.length);
     restartAuto();
-  };
-  const handlePrev = () => {
+  }, [slides.length, restartAuto]);
+
+  const handlePrev = useCallback(() => {
     setCurrentSlide((p) => (p - 1 + slides.length) % slides.length);
     restartAuto();
-  };
-  const goToSlide = (i: number) => {
+  }, [slides.length, restartAuto]);
+
+  const goToSlide = useCallback((i: number) => {
     setCurrentSlide(i);
     restartAuto();
-  };
+  }, [restartAuto]);
 
-  const s = slides[currentSlide];
+  // Memoize current slide for performance
+  const s = useMemo(() => slides[currentSlide], [slides, currentSlide]);
 
   return (
-    <section className="relative min-h-[80vh] flex items-center">
+    <section className="relative min-h-[80vh] flex items-center" aria-label="Hero Section">
       <div className="relative w-full max-w-7xl mx-auto px-6 py-12 text-gray-900 dark:text-white">
         <HeroHeading
           brandName={process.env.NEXT_PUBLIC_APP_NAME}
@@ -120,7 +125,7 @@ const Hero: React.FC<HeroProps> = ({ slider }) => {
         />
 
         {/* Slider */}
-        <div className="relative">
+        <div className="relative" aria-label="Hero Slider" aria-live="polite">
           <AnimatePresence mode="wait">
             <motion.div
               key={s?.id ?? currentSlide}
@@ -138,32 +143,40 @@ const Hero: React.FC<HeroProps> = ({ slider }) => {
             <div
               className="h-1 bg-primary-500 transition-all"
               style={{ width: `${progress}%` }}
+              aria-hidden="true"
             />
           </div>
 
           {/* Navigation */}
-          <div className="pointer-events-none absolute inset-0 hidden sm:flex items-center justify-between">
+          <div className="pointer-events-none absolute inset-0 hidden sm:flex items-center justify-between" aria-label="Slider navigation">
             <button
+              type="button"
               onClick={handlePrev}
               className="pointer-events-auto cursor-pointer bg-gray-200/80 dark:bg-gray-800/80 hover:bg-gray-300 dark:hover:bg-gray-700 p-3 rounded-full -translate-x-6 sm:-translate-x-12"
+              aria-label="Sebelumnya"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             </button>
             <button
+              type="button"
               onClick={handleNext}
               className="pointer-events-auto cursor-pointer bg-gray-200/80 dark:bg-gray-800/80 hover:bg-gray-300 dark:hover:bg-gray-700 p-3 rounded-full translate-x-6 sm:translate-x-12"
+              aria-label="Berikutnya"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
         </div>
 
         {/* Dots */}
-        <div className="flex justify-center mt-4 space-x-2">
+        <div className="flex justify-center mt-4 space-x-2" aria-label="Pilih slide">
           {slides.map((_, i) => (
             <button
               key={i}
+              type="button"
               onClick={() => goToSlide(i)}
+              aria-label={`Pilih slide ${i + 1}`}
+              aria-current={i === currentSlide ? "true" : undefined}
               className={`w-3 h-3 rounded-full transition-transform ${
                 i === currentSlide
                   ? "bg-primary-500 scale-125"

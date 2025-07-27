@@ -133,25 +133,31 @@ const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games,
   const products = { langganan: dataLangganan };
   const config = categoryConfigs[activeCategory as keyof typeof categoryConfigs];
 
+  // Accessibility: useCallback for category switching
+  const handleCategory = React.useCallback((id: string) => setActiveCategory(id), []);
+
   return (
-    <section className="relative min-h-screen py-10">
+    <section className="relative min-h-screen py-10" aria-label="Daftar Produk">
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Category Navigation */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
+        <nav className="flex flex-wrap justify-center gap-4 mb-12" aria-label="Kategori Produk">
           {categories.map(({ name, id, icon: Icon, count }) => {
             const isActive = activeCategory === id;
             return (
               <button
                 key={id}
-                onClick={() => setActiveCategory(id)}
+                type="button"
+                onClick={() => handleCategory(id)}
+                aria-current={isActive ? "page" : undefined}
                 className={`
                   flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all transform hover:scale-105 cursor-pointer
                   ${isActive
                     ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg shadow-primary-500/25"
                     : "bg-gray-100 dark:bg-gray-900/50 hover:bg-primary-500/10 dark:hover:bg-primary-500/20 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-white"}
                 `}
+                aria-label={name}
               >
-                <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-primary-500 dark:text-primary-400"}`} />
+                <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-primary-500 dark:text-primary-400"}`} aria-hidden="true" />
                 <span>{name}</span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full ${
@@ -163,7 +169,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games,
               </button>
             );
           })}
-        </div>
+        </nav>
 
         {/* Header */}
         <div className="text-center mb-16">
@@ -184,7 +190,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games,
         </div>
 
         {/* Features */}
-        <div className="mb-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto text-center">
+        <div className="mb-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto text-center" aria-label="Fitur Kategori">
           {config?.features.map((feature, index) => {
             const ColorIcon = feature.icon;
             return (
@@ -195,9 +201,11 @@ const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games,
                   p-6 rounded-xl border border-gray-300 dark:border-primary-500/20 backdrop-blur-sm
                   hover:scale-105 transition-transform
                 "
+                aria-label={feature.title}
               >
                 <ColorIcon
                   className={`h-8 w-8 mx-auto mb-3 ${colorClassMap[feature.color]}`}
+                  aria-hidden="true"
                 />
                 <h3 className="text-gray-900 dark:text-white font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm">{feature.desc}</p>
@@ -219,7 +227,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games,
           <PulsaTopUp operators={operators} isHome={true} />
         ) : activeCategory === "langganan" ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" aria-label="Produk Langganan">
               {products.langganan?.map((product: any) => (
                 <ProductCard
                   key={product.id}
@@ -229,7 +237,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games,
               ))}
             </div>
             <div className="text-center mt-12">
-              <button className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105">
+              <button type="button" className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105">
                 Lihat Semua Langganan
               </button>
             </div>
