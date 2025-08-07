@@ -48,6 +48,9 @@ export default function Header({ onCartClick }: HeaderProps) {
 
   const navItems = [
     { label: 'Home', path: '/' },
+    { label: 'Top-up', path: '/game-topup' },
+    { label: 'Pulsa & Data', path: '/pulsa-data' },
+    { label: 'Hiburan', path: '/hiburan' },
     { label: 'Check Invoice', path: '/invoice' },
   ];
 
@@ -99,7 +102,7 @@ export default function Header({ onCartClick }: HeaderProps) {
                 );
               })}
               {/* Dropdown Produk */}
-              <div className="hidden md:flex items-center">
+              {/* <div className="hidden md:flex items-center">
                 <div className="relative group" ref={produkDropdownRef}>
                   <div className="relative">
                     <button
@@ -121,7 +124,6 @@ export default function Header({ onCartClick }: HeaderProps) {
                       </span>
                     </button>
 
-                    {/* ⛳️ Always rendered, visibility controlled by CSS only */}
                     <div
                       className={`absolute left-0 top-full min-w-[180px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-lg py-2 mt-2 z-50 transition-all duration-300
                         ${isProdukOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 pointer-events-none'}
@@ -146,7 +148,6 @@ export default function Header({ onCartClick }: HeaderProps) {
                   </div>
                 </div>
 
-                {/* Nama item aktif di samping dropdown */}
                 {(() => {
                   const activeItem = produkDropdown.find(item => currentPage === item.path);
                   return activeItem ? (
@@ -155,7 +156,7 @@ export default function Header({ onCartClick }: HeaderProps) {
                     </span>
                   ) : null;
                 })()}
-              </div>
+              </div> */}
 
             </nav>
           </div>
@@ -218,7 +219,7 @@ export default function Header({ onCartClick }: HeaderProps) {
                 </Link>
               ))}
               {/* Dropdown Produk di mobile */}
-              <div className="mt-2">
+              {/* <div className="mt-2">
                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 px-2">Produk</span>
                 <div className="flex flex-col gap-1">
                   {produkDropdown.map(({ label, path, icon }) => (
@@ -239,7 +240,7 @@ export default function Header({ onCartClick }: HeaderProps) {
                     </Link>
                   ))}
                 </div>
-              </div>
+              </div> */}
             </nav>
 
             {/* ThemeSwitcher Mobile */}

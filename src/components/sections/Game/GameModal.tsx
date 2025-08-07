@@ -118,7 +118,7 @@ const GameModal: React.FC<GameModalProps> = ({
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition"
+                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition cursor-pointer"
                   aria-label="Close"
                 >
                   <X className="h-6 w-6 text-gray-600 dark:text-gray-400" />
@@ -238,7 +238,7 @@ const GameModal: React.FC<GameModalProps> = ({
                       w-full mt-6 py-3 rounded-lg font-semibold text-white
                       bg-primary-600 hover:bg-primary-700
                       transition-all
-                      disabled:opacity-50 disabled:cursor-not-allowed
+                      disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer
                     "
                   >
                     {isProcessing ? "Processing..." : "Add to Cart"}

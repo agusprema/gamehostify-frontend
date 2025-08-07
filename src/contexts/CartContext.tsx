@@ -8,27 +8,19 @@ import React, {
   ReactNode,
   useCallback,
 } from 'react';
+
 import { getCartToken } from '@/lib/cart/getCartToken';
 import {
   CartData,
   CartItem,
   CartPackageNormalised,
   PackageEntry,
+  discount_applied
 } from '@/components/checkout/types/checkout';
 
-/* --- optional: ubah ke path publik img placeholder kamu --- */
 const FALLBACK_IMAGE = '/default.png';
 
-interface CartContextValue {
-  cart: CartData;
-  quantity: number;
-  fetchCart: () => Promise<void>;
-  fetchQuantity: () => Promise<void>;
-}
-
-const CartContext = createContext<CartContextValue | undefined>(undefined);
-
-/* ---------------- Normalizer util (raw -> CartItem) ---------------- */
+/* -------------------- Types -------------------- */
 
 type RawCartItem = {
   id?: string;
@@ -45,16 +37,31 @@ type RawCartItem = {
       amount?: string;
       price?: number;
       items?: Array<{ target?: string; quantity?: number; id?: string }>;
-      discount_applied?: number | null;
+      discount_applied?: discount_applied | null;
     };
   };
 };
 
+interface CartContextValue {
+  cart: CartData;
+  quantity: number;
+  fetchCart: () => Promise<void>;
+  fetchQuantity: () => Promise<void>;
+  applyCouponCode: (code: string, shouldDelete: boolean) => Promise<boolean>;
+  updateCart: (target: string, id:string) => Promise<boolean>;
+}
+
+/* -------------------- Context -------------------- */
+
+const CartContext = createContext<CartContextValue | undefined>(undefined);
+
+/* -------------------- Normalizer -------------------- */
+
 function normalizeCartItem(raw: RawCartItem): CartItem {
   const product = raw.product ?? {};
   const pkg = product.packages ?? {};
-
   const pkgItemsRaw = Array.isArray(pkg.items) ? pkg.items : [];
+
   const pkgItems: PackageEntry[] = pkgItemsRaw.map((i) => ({
     target: i?.target ?? '',
     quantity: typeof i?.quantity === 'number' ? i.quantity : 0,
@@ -67,12 +74,11 @@ function normalizeCartItem(raw: RawCartItem): CartItem {
     name: pkg.name ?? '',
     amount: pkg.amount ?? '',
     price: typeof pkg.price === 'number' ? pkg.price : undefined,
-    discount_applied:
-      typeof pkg.discount_applied === 'number' ? pkg.discount_applied : null,
+    discount_applied: pkg.discount_applied ?? null,
     items: pkgItems,
   };
 
-  return { // fallback unik
+  return {
     name: product.name ?? 'Unknown Product',
     image: product.logo && product.logo.trim() !== '' ? product.logo : FALLBACK_IMAGE,
     quantity,
@@ -83,13 +89,12 @@ function normalizeCartItem(raw: RawCartItem): CartItem {
   };
 }
 
-/* ---------------- Provider ---------------- */
+/* -------------------- Provider -------------------- */
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartData>({ items: [], total: 0 });
+  const [cart, setCart] = useState<CartData>({ items: [], total: 0, save_amount: 0, code: null });
   const [quantity, setQuantity] = useState(0);
 
-  // ------------------- FETCH CART -------------------
   const fetchCart = useCallback(async () => {
     try {
       const token = await getCartToken();
@@ -101,9 +106,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         },
         credentials: 'include',
       });
+
       if (!res.ok) throw new Error('Gagal mengambil cart');
 
       const json = await res.json();
+
       if (json.status === 'success') {
         const rawItems: RawCartItem[] = Array.isArray(json?.data?.items)
           ? json.data.items
@@ -113,14 +120,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
         setCart({
           total: typeof json?.data?.total === 'number' ? json.data.total : 0,
+          save_amount: typeof json?.data?.save_amount === 'number' ? json.data.save_amount : 0,
+          code: json.data.code ?? null,
           items,
         });
 
-        // sinkronkan quantity root kalau API punya
         if (typeof json?.data?.quantity === 'number') {
           setQuantity(json.data.quantity);
         } else {
-          // fallback hitung total quantity dari items
           setQuantity(items.reduce((sum, it) => sum + it.quantity, 0));
         }
       }
@@ -129,23 +136,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ------------------- FETCH QUANTITY -------------------
   const fetchQuantity = useCallback(async () => {
     try {
       const token = await getCartToken();
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/quantity`,
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-Cart-Token': token ?? '',
-          },
-          credentials: 'include',
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/quantity`, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Cart-Token': token ?? '',
+        },
+        credentials: 'include',
+      });
+
       if (!res.ok) throw new Error('Gagal mengambil quantity');
+
       const json = await res.json();
+
       if (json.status === 'success') {
         setQuantity(json.data.quantity ?? 0);
       }
@@ -154,7 +160,82 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ------------------- INIT DATA -------------------
+  const applyCouponCode = useCallback(async (code: string, shouldDelete: boolean): Promise<boolean> => {
+    try {
+      const token = await getCartToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/code`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Cart-Token': token ?? '',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ code, '_method': shouldDelete ? 'DELETE' : 'POST' }),
+      });
+
+      const json = await res.json();
+
+      if (json.status === 'success') {
+        const rawItems: RawCartItem[] = Array.isArray(json?.data?.items)
+          ? json.data.items
+          : [];
+
+        const items: CartItem[] = rawItems.map(normalizeCartItem);
+
+        setCart({
+          total: typeof json?.data?.total === 'number' ? json.data.total : 0,
+          save_amount: typeof json?.data?.save_amount === 'number' ? json.data.save_amount : 0,
+          code: json.data.code ?? null,
+          items,
+        });
+        return true;
+      }
+    } catch (err) {
+      console.error('applyCouponCode error:', err);
+      return false;
+    }
+    return false;
+  }, [fetchCart]);
+
+    const updateCart = useCallback(async (target: string, id:string): Promise<boolean> => {
+    try {
+      const token = await getCartToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/update`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Cart-Token': token ?? '',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ target, id }),
+      });
+
+      const json = await res.json();
+
+      if (json.status === 'success') {
+        const rawItems: RawCartItem[] = Array.isArray(json?.data?.items)
+          ? json.data.items
+          : [];
+
+        const items: CartItem[] = rawItems.map(normalizeCartItem);
+
+        setCart({
+          total: typeof json?.data?.total === 'number' ? json.data.total : 0,
+          save_amount: typeof json?.data?.save_amount === 'number' ? json.data.save_amount : 0,
+          code: json.data.code ?? null,
+          items,
+        });
+        return true;
+      }
+    } catch (err) {
+      console.error('update cart error:', err);
+      return false;
+    }
+    return false;
+  }, [fetchCart]);
+
   useEffect(() => {
     (async () => {
       await Promise.all([fetchCart(), fetchQuantity()]);
@@ -166,17 +247,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     quantity,
     fetchCart,
     fetchQuantity,
+    applyCouponCode,
+    updateCart
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
-/* ---------------- Hook ---------------- */
+/* -------------------- Hook -------------------- */
 
 export function useCart() {
   const ctx = useContext(CartContext);
-  if (!ctx) {
-    throw new Error('useCart must be used within CartProvider');
-  }
+  if (!ctx) throw new Error('useCart must be used within CartProvider');
   return ctx;
 }

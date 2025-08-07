@@ -58,11 +58,12 @@ export const viewport = {
 
 export default async function TopUpPage() {
   const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
-  const json = await fetchJson(
-    API + 'api/v1/games?per_page=24',
-    { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }
-  );
-  const data = json ?? {};
+
+  const [jsonGames] = await Promise.all([
+    fetchJson(API + 'api/v1/games?per_page=24', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+  ]);
+
+  const data = jsonGames?.data ?? {};
   const games = data.games ?? [];
   const nextCursor = data.next_cursor ?? null;
   const hasMore = !!data.has_more;

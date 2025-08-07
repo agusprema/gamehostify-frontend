@@ -16,7 +16,7 @@ export default function ThemeSwitcher() {
   return (
     <button
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className={`relative flex items-center w-14 h-7 rounded-full transition-colors duration-300 ${
+      className={`relative flex items-center w-14 h-7 rounded-full transition-colors duration-300 cursor-pointer ${
         isDark ? "bg-gradient-to-r from-primary-600 to-indigo-600" : "bg-gray-300"
       }`}
       aria-label="Toggle theme"

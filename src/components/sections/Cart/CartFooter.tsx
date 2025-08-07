@@ -10,7 +10,7 @@ interface CartFooterProps {
 
 const CartFooter = React.memo(function CartFooter({ totalFormatted, onCheckout }: CartFooterProps) {
   return (
-    <footer className="border-t border-gray-200 dark:border-gray-700/70 p-6 bg-white dark:bg-gray-900/60 backdrop-blur-sm transition-colors" aria-label="Cart Footer">
+    <footer className="border-t border-gray-200 dark:border-gray-700/70 p-6 bg-white dark:bg-gray-800/50 backdrop-blur-sm transition-colors" aria-label="Cart Footer">
       <div className="flex items-center justify-between mb-4">
         <span className="text-gray-800 dark:text-white text-lg">Total:</span>
         <span className="text-primary-600 dark:text-primary-400 font-bold text-xl">{totalFormatted}</span>

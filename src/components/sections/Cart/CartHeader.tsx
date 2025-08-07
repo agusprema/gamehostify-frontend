@@ -9,7 +9,7 @@ interface CartHeaderProps {
 
 const CartHeader = React.memo(function CartHeader({ quantity, onClose }: CartHeaderProps) {
   return (
-    <header className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-900/60 transition-colors" aria-labelledby="cart-heading">
+    <header className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700/70 bg-white dark:bg-gray-800/50 transition-colors" aria-labelledby="cart-heading">
       <h2 id="cart-heading" className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
         <ShoppingBag className="h-5 w-5 text-primary-600 dark:text-primary-400" aria-hidden="true" />
         Cart <span className="text-primary-600 dark:text-primary-400">({quantity})</span>

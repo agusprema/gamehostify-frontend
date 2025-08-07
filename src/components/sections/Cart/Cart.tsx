@@ -12,10 +12,7 @@ import React, {
 } from "react";
 import dynamic from "next/dynamic";
 import { useCart } from "@/contexts/CartContext";
-import { useLoader } from "@/contexts/LoaderContext";
-import { useRouter, usePathname } from "next/navigation";
 import { getCartToken } from "@/lib/cart/getCartToken";
-import type { BaseCartItem } from "./types";
 
 // --- Dynamic imports (code splitting) ---
 const CartHeader = dynamic(() => import("./CartHeader"), { ssr: false });
@@ -56,9 +53,6 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
   const [loadingCart, setLoadingCart] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
-  const { showLoader } = useLoader();
-  const pathname = usePathname();
 
   // Track last successful fetch
   const [lastFetched, setLastFetched] = useState<number>(0);
@@ -194,7 +188,8 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
         <aside
           aria-hidden={!isOpen}
           className={`fixed right-0 top-0 h-full w-full max-w-md z-50
-            bg-white dark:bg-gradient-to-br dark:from-gray-900/80 dark:to-gray-800/60
+            bg-gradient-to-b from-gray-50 via-primary-100/50 to-primary-100
+          dark:from-black dark:via-primary-950 dark:to-primary-900
             backdrop-blur-sm border-l border-gray-200 dark:border-primary-500/20 shadow-xl
             flex flex-col transform transition-transform duration-300 ease-out
             ${isOpen ? "translate-x-0" : "translate-x-full"}`}

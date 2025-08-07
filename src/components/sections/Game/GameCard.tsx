@@ -1,6 +1,7 @@
 import React, { CSSProperties } from "react";
 import { Game } from "./types";
 import Image from "next/image";
+import {Star, Percent} from "lucide-react"
 
 interface Props {
   game: Game;
@@ -23,6 +24,19 @@ const GameCard: React.FC<Props> = ({ game, onSelect, style, imageHeight, textHei
         transition-all duration-300 cursor-pointer
       "
     >
+
+      {game.is_popular && (
+        <div className="absolute top-0 left-0 z-50 p-2">
+          <Star className="w-5 h-5 text-yellow-500 dark:fill-yellow-300 fill-yellow-500"/>
+        </div>
+      )}
+
+      {game.packages.some(pkg => pkg.has_discount) &&(
+        <div className="absolute top-0 right-0 z-50 p-2">
+          <Percent className="w-5 h-5 text-red-500"/>
+        </div>
+      )}
+
       {/* Image */}
       <div style={{ height: imageHeight, overflow: "hidden" }}>
         <Image

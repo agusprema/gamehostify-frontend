@@ -54,6 +54,8 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
   const isInitialLoading = loadingPaymentMethods || loadingCart;
   const items = useMemo(() => cart?.items ?? [], [cart?.items]);
   const total = useMemo(() => cart?.total ?? 0, [cart?.total]);
+  const code = useMemo(() => cart?.code ?? null, [cart?.code]);
+  const save_amount = useMemo(() => cart?.save_amount ?? 0, [cart?.save_amount]);
 
   // ---------------------------- Init (once) ----------------------------
   useEffect(() => {
@@ -238,7 +240,9 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       channelServerErrors,
       isInitialLoading,
       items,
+      code,
       total,
+      save_amount,
       handleCustomerInfoSubmit,
       handleChannelPropertyChange,
       handlePayment,
@@ -260,7 +264,9 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       channelServerErrors,
       isInitialLoading,
       items,
+      code,
       total,
+      save_amount,
       handleCustomerInfoSubmit,
       handleChannelPropertyChange,
       handlePayment,

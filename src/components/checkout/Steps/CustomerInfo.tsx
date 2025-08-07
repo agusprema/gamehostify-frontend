@@ -1,26 +1,38 @@
 "use client";
 
-import React from "react";
+import React, {useCallback} from "react";
 import { useForm, Controller } from "react-hook-form";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { Gamepad2 } from "lucide-react";
 import Image from "next/image";
 import { CartItem, CustomerFormValues } from "@/components/checkout/types/checkout";
+import { Loader2, Trash2 } from "lucide-react";
 
 interface Props {
   onSubmit: (data: CustomerFormValues) => void;
+  onRemove: (id: string) => void;
+  onUpdate: (target:string, id:string) => void;
+  removingId: string | null;
   items: CartItem[];
   defaultValues?: CustomerFormValues;
   serverErrors?: Partial<Record<keyof CustomerFormValues, string>>;
+  updateCartError: string | null;
+  isLoadingCartUpdate: boolean;
 }
 
 export default function CustomerInfoForm({
   onSubmit,
+  onRemove,
+  onUpdate,
   items,
+  removingId,
   defaultValues = { name: "", email: "", phone: "" },
   serverErrors = {},
+  updateCartError,
+  isLoadingCartUpdate
 }: Props) {
+
   const {
     register,
     control,
@@ -34,6 +46,9 @@ export default function CustomerInfoForm({
     defaultValues,
     shouldUnregister: false,
   });
+
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editedTarget, setEditedTarget] = React.useState<string>("");
 
   const prevRef = React.useRef(defaultValues);
   React.useEffect(() => {
@@ -63,6 +78,21 @@ export default function CustomerInfoForm({
   const hasServerName = !!serverErrors.name;
   const hasServerEmail = !!serverErrors.email;
   const hasServerPhone = !!serverErrors.phone;
+
+  const handleRemove = useCallback(
+    (pkgId: string) => {
+      onRemove(pkgId);
+    },
+    [onRemove]
+  );
+
+  const handleUpdate = useCallback(
+    (target: string, id:string) => {
+      onUpdate(target, id);
+      setEditingId(null);
+    },
+    [onUpdate]
+  );
 
   return (
     <>
@@ -161,7 +191,7 @@ export default function CustomerInfoForm({
       </div>
 
       {items.length > 0 && (
-        <div className="border-t border-gray-300 dark:border-gray-700 pt-6">
+        <div className=" pt-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
             <Gamepad2 className="h-5 w-5 mr-2 text-green-500" />
             Game Account Information
@@ -181,23 +211,79 @@ export default function CustomerInfoForm({
                   </div>
                 </div>
                 <div className="space-y-4">
-                  {item.packages.items.map((entry, idx) => (
-                    <div key={idx} className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+                  {item.packages.items.map((entry, idx) => {
+                  const isEditing = editingId === entry.id;
+
+                  return (
+                    <div key={idx} className="p-4 shadow-sm">
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Game Account ID / Username</label>
-                        <span className="text-xs bg-primary-500 text-white px-2 py-0.5 rounded-full">
-                          Qty: {entry.quantity}
+                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                          Game Account ID / Username
+                        </label>
+                        <span className="text-xs bg-primary-500 text-center text-white px-2 py-0.5 rounded-full">
+                          {entry.quantity}
                         </span>
                       </div>
-                      <input
-                        type="text"
-                        disabled
-                        value={entry.target}
-                        className="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                        placeholder="Enter your game account ID or username"
-                      />
+
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          disabled={!isEditing}
+                          value={isEditing ? editedTarget : entry.target}
+                          onChange={(e) => setEditedTarget(e.target.value)}
+                          className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:bg-gray-100 disabled:dark:bg-gray-700"
+                          placeholder="Enter your game account ID or username"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            console.log("editingId", editingId, "entry.id", entry.id, "loading?", isLoadingCartUpdate);
+
+                            if(isEditing){
+                              handleUpdate(editedTarget,  entry.id);
+                              entry.target = editedTarget
+                            }else if(!isEditing){
+                              setEditingId(entry.id);
+                              setEditedTarget(entry.target);
+                            }
+                          }}
+                          className={`px-3 py-2 cursor-pointer rounded-md text-white transition
+                            ${
+                              isLoadingCartUpdate && isEditing
+                                ? 'hover:bg-blue-600 bg-blue-500'
+                                : isEditing
+                                ? 'hover:bg-green-600 bg-green-500'
+                                : 'hover:bg-yellow-600 bg-yellow-500'
+                              }
+                            `}
+                        >
+                          
+                          {isLoadingCartUpdate && editingId === entry.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-red-500 dark:text-red-400" />
+                          ) : isEditing ? (
+                            <>Apply</>
+                          ) : (
+                            <>Edit</>
+                          )}
+                        </button>
+
+                        <button
+                          onClick={() => handleRemove(entry.id)}
+                          disabled={removingId === entry.id}
+                          className="border cursor-pointer border-gray-300 dark:border-gray-600 rounded-md p-2 text-black dark:text-white hover:text-red-500 dark:hover:text-red-400 bg-gray-200 dark:bg-gray-700 hover:bg-gray-200/50 hover:dark:bg-gray-700/50 transition-transform active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label={`Remove package ${entry.target}`}
+                        >
+                          {removingId === entry.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-red-500 dark:text-red-400" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               </div>
             ))}

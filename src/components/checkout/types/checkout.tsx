@@ -12,6 +12,10 @@ export interface CustomerFormValues {
   phone: string; // phone_number di payload API
 }
 
+export interface OrderSummaryFormValues {
+  code_cupon: string;
+}
+
 /** Bentuk channel dari API payment/methods.
  *  Sesuaikan kalau kamu punya tipe lebih spesifik.
  */
@@ -56,11 +60,22 @@ export interface PackageEntry {
   id: string;
 }
 
+export interface discount_applied {
+  id: string;
+  //code: string;
+  //name: string;
+  type: 'percentage' | 'fixed';
+  label: string;
+  value: string;
+  //is_global: boolean;
+  amount_saved: number;
+};
+
 export interface CartPackageNormalised {
   name: string;
   amount?: string;
   price?: number;
-  discount_applied?: number | null;
+  discount_applied?: discount_applied | null;
   items: PackageEntry[]; // always array after normalization
 }
 
@@ -76,5 +91,7 @@ export interface CartItem {
 
 export interface CartData {
   total: number;
+  save_amount: number;
   items: CartItem[];
+  code: string | null;
 }

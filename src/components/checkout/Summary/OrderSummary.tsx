@@ -1,24 +1,34 @@
 "use client";
 
-import React from "react";
-import { Group } from "lucide-react";
+import React, { useCallback, useState } from "react";
+import { Group, LoaderCircle, X } from "lucide-react";
 import { CartItem, PaymentMethodsMap } from "@/components/checkout/types/checkout";
 import Image from "next/image";
 
 interface Props {
-  items: CartItem[]; // ✅ harus array
+  items: CartItem[];
   total: number;
+  save_amount:number;
   selectedChannel: string;
   paymentMethods: PaymentMethodsMap;
   isLoading?: boolean;
+  onSubmit: (id: string, shouldDelete: boolean) => void;
+  couponError: string | null;
+  code: string | null;
+  isLoadingCode: boolean;
 }
 
 const OrderSummary: React.FC<Props> = React.memo(({
+  onSubmit,
   items,
   total,
+  save_amount,
   selectedChannel,
   paymentMethods,
   isLoading = false,
+  couponError = null,
+  code = null,
+  isLoadingCode = false
 }) => {
   if (isLoading) {
     return (
@@ -52,16 +62,28 @@ const OrderSummary: React.FC<Props> = React.memo(({
       </aside>
     );
   }
+  const [couponCode, setCouponCode] = useState(code);
 
   // Normal content jika data sudah ready
   const selectedChannelObj = Object.values(paymentMethods)
     .flat()
     .find((c) => c.code === selectedChannel);
 
-  const feeValue = Number(selectedChannelObj?.fee_value || 0); // ✅ pastikan number
+  const feeValue = Number(selectedChannelObj?.fee_value || 0);
   const feeType = selectedChannelObj?.fee_type || "fixed";
   const fee = feeType === "percentage" ? (total * feeValue) / 100 : feeValue;
   const grandTotal = total + fee;
+
+  const handleSubmit = useCallback(() => {
+    if (!couponCode || !couponCode.trim()) return;
+    onSubmit(couponCode.trim(), false);
+  }, [couponCode, onSubmit]);
+
+  const handleRemove = useCallback(() => {
+    onSubmit('', true);
+  }, [couponCode, onSubmit]);
+
+
 
   return (
     <aside className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24" aria-labelledby="order-summary-heading">
@@ -71,9 +93,9 @@ const OrderSummary: React.FC<Props> = React.memo(({
       </h2>
 
       <ul className="space-y-4 mb-6">
-        {items.map((item) => (
+        {items.map((item, idx) => (
           <li
-            key={item.name}
+            key={idx}
             className="flex items-center gap-4 bg-white/50 dark:bg-gray-800/40 backdrop-blur-sm rounded-lg p-4"
           >
             <Image
@@ -87,20 +109,82 @@ const OrderSummary: React.FC<Props> = React.memo(({
               <p className="text-sm text-gray-900 dark:text-white">{item.name}</p>
               <p className="text-gray-600 dark:text-gray-400 text-xs">Qty: {item.quantity}</p>
               <p className="text-primary-600 dark:text-primary-400 font-semibold">
-                Rp{item.subtotal.toLocaleString("id-ID")}
+                
+                {
+                  item.packages.discount_applied && (
+                    <span className="line-through text-sm text-gray-500 mr-2">
+                      Rp {(item.subtotal + item.packages.discount_applied.amount_saved).toLocaleString("id-ID")}
+                    </span>
+                  )
+                }
+                <span className="text-base font-semibold">
+                  Rp {item.subtotal.toLocaleString("id-ID")}
+                </span>
+
               </p>
             </div>
           </li>
         ))}
       </ul>
 
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4">
+        <label htmlFor="coupon" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Coupon Code
+        </label>
+        <div className="flex flex-col sm:flex-row gap-2">
+
+          <div className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-lg px-3 py-1.5 border border-gray-300 dark:border-gray-700 focus-within:border-primary-500 transition-all w-full sm:w-auto">
+            <input
+              type="text"
+              id="coupon"
+              name="coupon"
+              placeholder="e.g. DISCOUNT10"
+              value={couponCode ?? ''}
+              onChange={(e) => setCouponCode(e.target.value)}
+              className="bg-transparent text-gray-900 dark:text-white text-sm outline-none w-full"
+            />
+            <X className={`h-4 w-4 text-gray-500 dark:text-gray-400 ml-2 cursor-pointer hover:text-red-500 ${!couponCode || !couponCode.trim() ? 'hidden': ''}`}
+               onClick={() => {
+                  setCouponCode('');
+                  handleRemove();
+                }}
+            />
+          </div>
+
+          {/* button ini keluar dari container */}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!couponCode || !couponCode.trim()}
+            className="sm:w-auto w-full cursor-pointer px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            
+            {isLoadingCode ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <>Apply</>
+            )}
+          </button>
+        </div>
+        {couponError && (
+          <p className="text-sm text-red-600 dark:text-red-400 mt-1">{couponError}</p>
+        )}
+
+      </div>
+
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
         <div className="flex justify-between text-sm text-gray-700 dark:text-gray-400">
           <span>Subtotal</span>
           <span className="text-gray-900 dark:text-white">Rp{total.toLocaleString("id-ID")}</span>
         </div>
+        <div className="flex justify-between text-sm text-red-700 dark:text-red-400">
+          <span>Discount</span>
+          <span className="">
+            - Rp{save_amount.toLocaleString("id-ID")}
+          </span>
+        </div>
         <div className="flex justify-between text-sm text-gray-700 dark:text-gray-400">
-          <span>Fee</span>
+          <span>Tax</span>
           <span className="text-gray-900 dark:text-white">
             Rp{fee.toLocaleString("id-ID")} {feeType === "percentage" && `(${feeValue}%)`}
           </span>
