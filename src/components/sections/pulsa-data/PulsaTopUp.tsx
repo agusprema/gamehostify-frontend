@@ -1,12 +1,17 @@
 "use client";
-import React, { useState } from "react";
-import { PulsaModal } from "./PulsaModal/PulsaModal";
+import React, { useState, useMemo, useEffect, useId } from "react";
 import { Operator, OperatorPackage } from "./types";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { OperatorGrid } from "./OperatorGrid";
 import { handleApiErrors } from "@/utils/apiErrorHandler";
 import Link from "@/components/ui/Link";
+import PulsaModalHeader from "./PulsaModal/PulsaModalHeader";
+import PulsaModalPhoneInput from "./PulsaModal/PulsaModalPhoneInput";
+import PulsaModalTabs from "./PulsaModal/PulsaModalTabs";
+import PulsaModalPackages from "./PulsaModal/PulsaModalPackages";
+import PulsaModalFooter from "./PulsaModal/PulsaModalFooter";
+import Modal from "@/components/ui/Modal";
 
 export interface PulsaTopUpProps {
   operators: Operator[];
@@ -18,6 +23,39 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
   const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const [tab, setTab] = useState<"pulsa" | "data">("pulsa");
+  const [phone, setPhone] = useState("");
+  const [selectedPkg, setSelectedPkg] = useState<OperatorPackage | null>(null);
+  const inputId = useId();
+
+  const pulsaPackages = useMemo(
+    () => selectedOperator?.packages.filter((p) => p.type_package === "pulsa") ?? [],
+    [selectedOperator]
+  );
+  const dataPackages = useMemo(
+    () => selectedOperator?.packages.filter((p) => p.type_package === "data") ?? [],
+    [selectedOperator]
+  );
+  const currentPackages = tab === "pulsa" ? pulsaPackages : dataPackages;
+
+  useEffect(() => {
+    setPhone("");
+    setSelectedPkg(null);
+    setTab("pulsa");
+  }, [selectedOperator]);
+
+  useEffect(() => {
+    if (selectedPkg)
+      setTab(selectedPkg.type_package === "data" ? "data" : "pulsa");
+  }, [selectedPkg]);
+
+  const handleConfirm = async () => {
+    if (!selectedPkg || !phone.trim()) return;
+    await handleTopUp(selectedPkg, phone.trim());
+  };
+
+  const modalTitleId = `pulsa-modal-title-${inputId}`;
+  const modalDescId = `pulsa-modal-desc-${inputId}`;
 
   const handleTopUp = async (pkg: OperatorPackage, phone: string) => {
     if (!pkg || !phone.trim()) return;
@@ -100,14 +138,40 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
         </div>
       )}
 
-      <PulsaModal
-        operator={selectedOperator}
-        isOpen={!!selectedOperator}
-        onClose={() => setSelectedOperator(null)}
-        onSubmit={handleTopUp}
-        submitting={isProcessing}
-        formErrors={formErrors}
-      />
+      {selectedOperator && (
+        <Modal
+          isOpen={!!selectedOperator}
+          onClose={() => setSelectedOperator(null)}
+          containerClassName="max-w-xl p-8"
+          ariaLabelledby={modalTitleId}
+          ariaDescribedby={modalDescId}
+        >
+          <>
+            <div id={modalTitleId} className="sr-only">Isi Pulsa & Paket Data</div>
+            <div id={modalDescId} className="sr-only">Formulir pembelian pulsa dan paket data untuk operator terpilih.</div>
+            <PulsaModalHeader operator={selectedOperator} selectedPkg={selectedPkg} onClose={() => setSelectedOperator(null)} />
+            <PulsaModalPhoneInput
+              phone={phone}
+              setPhone={setPhone}
+              inputId={inputId}
+              formError={formErrors}
+              operator={selectedOperator}
+            />
+            <PulsaModalTabs tab={tab} setTab={setTab} />
+            <PulsaModalPackages
+              currentPackages={currentPackages}
+              selectedPkg={selectedPkg}
+              setSelectedPkg={setSelectedPkg}
+            />
+            <PulsaModalFooter
+              submitting={isProcessing}
+              selectedPkg={selectedPkg}
+              phone={phone}
+              handleConfirm={handleConfirm}
+            />
+          </>
+        </Modal>
+      )}
     </section>
   );
 };
