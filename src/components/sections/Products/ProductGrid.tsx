@@ -5,6 +5,9 @@ import ProductCard, { Product } from "./ProductCard";
 import GameTopUp from "@/components/sections/Game/GameTopUp";
 import PulsaTopUp from "@/components/sections/pulsa-data/PulsaTopUp";
 import { Operator } from "@/components/sections/pulsa-data/types";
+import { Hiburan } from "@/components/sections/hiburan/types"
+import { Game } from "@/components/sections/Game/types"
+import HiburanTopup from "@/components/sections/hiburan/HiburanTopUp";
 
 import {
   Shield,
@@ -18,52 +21,14 @@ import {
   Tickets
 } from "lucide-react";
 
-/* ---------- types ---------- */
-interface GamePackage {
-  id: string;
-  name: string;
-  amount: string;
-  type: string;
-  final_price: number;
-  original_price?: number;
-  is_popular?: boolean;
-  has_discount: boolean;
-  metadata?: { bonus?: string };
-}
-interface Game {
-  id: string;
-  name: string;
-  slug: string;
-  logo: string;
-  category: string;
-  rating?: number;
-  label: string;
-  placeholder: string;
-  is_popular?: boolean;
-  packages: GamePackage[];
-}
 interface ProductGridProps {
   activeCategoryDefault: string;
   games: Game[];
   operators: Operator[];
+  entertainments: Hiburan[];
   nextCursor?: string | null;
   hasMore?: boolean;
 }
-
-/* ---------- sample data (replace w/ real) ---------- */
-const dataLangganan: Product[] = [
-  {
-    id: "6",
-    name: "Cloud VPS - 2GB RAM, 50GB SSD",
-    price: 24.99,
-    image:
-      "https://images.pexels.com/photos/325229/pexels-photo-325229.jpeg?auto=compress&cs=tinysrgb&w=500",
-    category: "VPS Server",
-    rating: 4.9,
-    reviews: 432,
-    badge: "Entry Level",
-  },
-];
 
 /* ---------- config ---------- */
 type FeatureCfg = {
@@ -121,16 +86,15 @@ const categoryConfigs: Record<
   },
 };
 
-const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games, nextCursor, hasMore, operators }) => {
+const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games, nextCursor, hasMore, operators, entertainments }) => {
   const [activeCategory, setActiveCategory] = useState<string>(activeCategoryDefault);
 
   const categories = [
     { name: "Top-up Game", icon: Gamepad2, id: "topup", count: games.length },
     { name: "Pulsa & Data", icon: CardSim, id: "pulsa", count: operators.length },
-    { name: "Langganan", icon: Tickets, id: "langganan", count: dataLangganan.length },
+    { name: "Langganan", icon: Tickets, id: "langganan", count: entertainments.length },
   ];
 
-  const products = { langganan: dataLangganan };
   const config = categoryConfigs[activeCategory as keyof typeof categoryConfigs];
 
   // Accessibility: useCallback for category switching
@@ -226,22 +190,10 @@ const ProductGrid: React.FC<ProductGridProps> = ({ activeCategoryDefault, games,
         ) : activeCategory === "pulsa" ? (
           <PulsaTopUp operators={operators} isHome={true} />
         ) : activeCategory === "langganan" ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" aria-label="Produk Langganan">
-              {products.langganan?.map((product: any) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={() => {}}
-                />
-              ))}
-            </div>
-            <div className="text-center mt-12">
-              <button type="button" className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3 rounded-lg font-semibold transition-all transform hover:scale-105">
-                Lihat Semua Langganan
-              </button>
-            </div>
-          </>
+          <HiburanTopup 
+            hiburans={entertainments}
+            isHome={true}
+          />
         ) : null}
       </div>
     </section>

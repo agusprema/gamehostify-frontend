@@ -104,10 +104,11 @@ export default async function HomePage() {
 
 
   // Fetch paralel & error safe
-  const [jsonGames, jsonOperators, jsonSlider] = await Promise.all([
+  const [jsonGames, jsonOperators, jsonSlider, jsonEntertaiments] = await Promise.all([
     fetchJson(API + 'api/v1/games?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
     fetchJson(API + 'api/v1/operators?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
     fetchJson(API + 'api/v1/contents/slider', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson(API + 'api/v1/entertainments?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
   ]);
 
   const dataGames = jsonGames?.data ?? {};
@@ -117,6 +118,8 @@ export default async function HomePage() {
   const operators = jsonOperators?.data?.operators ?? [];
   const slider: Slide[] = normalizeSlidesPayload(jsonSlider?.data ?? jsonSlider, API);
 
+  const entertainments = jsonEntertaiments?.data?.entertainment ?? [];
+
   return (
     <PageTransition>
       <Wrapper>
@@ -125,6 +128,7 @@ export default async function HomePage() {
           activeCategoryDefault="topup"
           games={games}
           operators={operators}
+          entertainments={entertainments}
           nextCursor={nextCursor}
           hasMore={hasMore}
         />
