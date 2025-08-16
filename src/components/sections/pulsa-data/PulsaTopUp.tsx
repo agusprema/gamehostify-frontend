@@ -1,12 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { PulsaModal } from "./PulsaModal/PulsaModal";
 import { Operator, OperatorPackage } from "./types";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { OperatorGrid } from "./OperatorGrid";
 import { handleApiErrors } from "@/utils/apiErrorHandler";
 import Link from "@/components/ui/Link";
+import { PulsaModal } from "./PulsaModal/PulsaModal";
 
 export interface PulsaTopUpProps {
   operators: Operator[];
@@ -18,7 +18,6 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
   const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
-
   const handleTopUp = async (pkg: OperatorPackage, phone: string) => {
     if (!pkg || !phone.trim()) return;
     setIsProcessing(true);
@@ -100,14 +99,16 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
         </div>
       )}
 
-      <PulsaModal
-        operator={selectedOperator}
-        isOpen={!!selectedOperator}
-        onClose={() => setSelectedOperator(null)}
-        onSubmit={handleTopUp}
-        submitting={isProcessing}
-        formErrors={formErrors}
-      />
+      {selectedOperator && (
+        <PulsaModal
+          operator={selectedOperator}
+          isOpen={!!selectedOperator}
+          onClose={() => setSelectedOperator(null)}
+          onSubmit={handleTopUp}
+          submitting={isProcessing}
+          formErrors={formErrors}
+        />
+      )}
     </section>
   );
 };

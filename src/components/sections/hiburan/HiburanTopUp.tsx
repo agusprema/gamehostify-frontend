@@ -18,7 +18,6 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
   const [selected, setSelected] = useState<Hiburan | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
-
   const handleTopUp = async (pkg: HiburanPackage, target: string) => {
     if (!pkg || !target.trim()) return;
     setIsProcessing(true);
@@ -100,14 +99,16 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
         </div>
       )}
 
-      <HiburanModal
-        hiburan={selected}
-        isOpen={!!selected}
-        onClose={() => setSelected(null)}
-        onSubmit={handleTopUp}
-        submitting={isProcessing}
-        formErrors={formErrors}
-      />
+      {selected && (
+        <HiburanModal
+          hiburan={selected}
+          isOpen={!!selected}
+          onClose={() => setSelected(null)}
+          onSubmit={handleTopUp}
+          submitting={isProcessing}
+          formErrors={formErrors}
+        />
+      )}
     </section>
   );
 }

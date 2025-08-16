@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+// use reusable modal component
 import GameModal from "./GameModal";
 import Link from "@/components/ui/Link";
 import { useCart } from "@/contexts/CartContext";
@@ -12,7 +13,7 @@ import { handleApiErrors } from "@/utils/apiErrorHandler";
 import GameFilterBar from "./GameFilterBar";
 
 /* ---------- Debounce ---------- */
-function debounce<T extends (...args: any[]) => void>(fn: T, delay = 400) {
+function debounce<T extends (...args: unknown[]) => void>(fn: T, delay = 400) {
   let timeout: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
@@ -262,18 +263,19 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         )}
       </div>
 
-      {/* Modal */}
-      <GameModal
-        formError={formErrors}
-        game={selectedGame}
-        onClose={() => setSelectedGame(null)}
-        onSelectPackage={setSelectedPackage}
-        selectedPackage={selectedPackage}
-        gameAccount={gameAccount}
-        setGameAccount={setGameAccount}
-        onTopUp={handleTopUp}
-        isProcessing={isProcessing}
-      />
+      {selectedGame && (
+        <GameModal
+          game={selectedGame}
+          onClose={() => setSelectedGame(null)}
+          onSelectPackage={setSelectedPackage}
+          selectedPackage={selectedPackage}
+          gameAccount={gameAccount}
+          setGameAccount={setGameAccount}
+          onTopUp={handleTopUp}
+          isProcessing={isProcessing}
+          formError={formErrors}
+        />
+      )}
     </section>
   );
 };
