@@ -43,7 +43,7 @@ type RawCartItem = {
   };
 };
 
-interface AddCartParams {
+export interface AddCartParams {
   purchasable_type: string;
   purchasable_id: string;
   target: string;

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { PulsaModal } from "./PulsaModal/PulsaModal";
 import { Operator, OperatorPackage } from "./types";
-import { useCart } from "@/contexts/CartContext";
+import useCartAdd from "@/hooks/useCartAdd";
 import { OperatorGrid } from "./OperatorGrid";
 import Link from "@/components/ui/Link";
 
@@ -12,34 +12,21 @@ export interface PulsaTopUpProps {
 }
 
 const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) => {
-  const { addToCart } = useCart();
   const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const { submit, isProcessing, formErrors, resetErrors } = useCartAdd();
 
   const handleTopUp = async (pkg: OperatorPackage, phone: string) => {
     if (!pkg || !phone.trim()) return;
-    setIsProcessing(true);
-    try {
-      const { success, errors } = await addToCart({
+    await submit(
+      {
         purchasable_type: pkg.type,
         purchasable_id: pkg.id,
         target: phone.trim(),
         target_type: "phone",
         quantity: 1,
-      });
-
-      if (!success) {
-        setFormErrors(errors || {});
-        return;
-      }
-
-      setSelectedOperator(null);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsProcessing(false);
-    }
+      },
+      () => setSelectedOperator(null)
+    );
   };
 
   return (
@@ -49,7 +36,7 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
           operators={operators}
           onSelect={(op) => {
             setSelectedOperator(op);
-            setFormErrors({});
+            resetErrors();
           }}
           isHome={isHome}
         />

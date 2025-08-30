@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import GameModal from "./GameModal";
 import Link from "@/components/ui/Link";
-import { useCart } from "@/contexts/CartContext";
+import useCartAdd from "@/hooks/useCartAdd";
 import GameGrid from "./GameGrid";
 import { Game, GamePackage, GameTopUpProps, Category } from "./types";
 import GameFilterBar from "./GameFilterBar";
@@ -26,14 +26,14 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   scrollTriggerRatio = 0.4,
   height = 800,
 }) => {
-  const { addToCart } = useCart();
-
+  const { submit, isProcessing: cartProcessing, formErrors, resetErrors } = useCartAdd();
+  
   /* ---------- States ---------- */
   const [games, setGames] = useState<Game[]>(initialGames);
   const [cursor, setCursor] = useState<string | null>(initialCursor);
   const [hasMoreState, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -42,7 +42,6 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<GamePackage | null>(null);
   const [gameAccount, setGameAccount] = useState("");
-  const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
 
   /* ---------- Fetch Categories ---------- */
   const fetchCategories = useCallback(async () => {
@@ -82,7 +81,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     }) => {
       if (isFetchingRef.current) return;
       isFetchingRef.current = true;
-      setIsProcessing(true);
+      setIsLoading(true);
 
       try {
         const url = new URL(
@@ -109,7 +108,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
       } finally {
         setLoadingMore(false);
         isFetchingRef.current = false;
-        setIsProcessing(false);
+        setIsLoading(false);
       }
     },
     [search, category]
@@ -133,28 +132,17 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   /* ---------- Handle Top-Up ---------- */
   const handleTopUp = useCallback(async () => {
     if (!selectedGame || !selectedPackage || !gameAccount.trim()) return;
-    setIsProcessing(true);
-    try {
-      const { success, errors } = await addToCart({
+    await submit(
+      {
         purchasable_type: selectedPackage.type,
         purchasable_id: selectedPackage.id,
         target: gameAccount,
         target_type: "player_id",
         quantity: 1,
-      });
-
-      if (!success) {
-        setFormErrors(errors || {});
-        return;
-      }
-
-      setSelectedGame(null);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [selectedGame, selectedPackage, gameAccount, addToCart]);
+      },
+      () => setSelectedGame(null)
+    );
+  }, [selectedGame, selectedPackage, gameAccount, submit]);
 
   return (
     <section className="relative py-16">
@@ -173,7 +161,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
               fetchGames({ append: false, searchParam: search, categoryParam: val });
             }}
             categories={categories}
-            isProcessing={isProcessing}
+            isProcessing={isLoading || cartProcessing}
           />
         )}
 
@@ -186,6 +174,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
               setSelectedGame(g);
               setSelectedPackage(null);
               setGameAccount("");
+              resetErrors();
             }}
             fetchMore={handleLoadMore}
             hasMore={hasMoreState}
@@ -194,7 +183,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
             scrollTriggerRatio={scrollTriggerRatio}
           />
         ) : (
-          !isProcessing && (
+          !(isLoading || cartProcessing) && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Game Tidak Ditemukan
@@ -251,7 +240,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         gameAccount={gameAccount}
         setGameAccount={setGameAccount}
         onTopUp={handleTopUp}
-        isProcessing={isProcessing}
+        isProcessing={isLoading || cartProcessing}
       />
     </section>
   );

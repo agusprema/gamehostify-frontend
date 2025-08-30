@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Hiburan, HiburanPackage } from "./types";
-import { useCart } from "@/contexts/CartContext";
+import useCartAdd from "@/hooks/useCartAdd";
 import { HiburanGrid } from "./HiburanGrid";
 import { HiburanModal } from "./HiburanModal";
 import Link from "@/components/ui/Link";
@@ -12,34 +12,21 @@ export interface HiburanTopUpProps {
 }
 
 export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpProps) {
-  const { addToCart } = useCart();
   const [selected, setSelected] = useState<Hiburan | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const { submit, isProcessing, formErrors, resetErrors } = useCartAdd();
 
   const handleTopUp = async (pkg: HiburanPackage, target: string) => {
     if (!pkg || !target.trim()) return;
-    setIsProcessing(true);
-    try {
-      const { success, errors } = await addToCart({
+    await submit(
+      {
         purchasable_type: pkg.type,
         purchasable_id: pkg.id,
         target: target.trim(),
         target_type: "phone",
         quantity: 1,
-      });
-
-      if (!success) {
-        setFormErrors(errors || {});
-        return;
-      }
-
-      setSelected(null);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsProcessing(false);
-    }
+      },
+      () => setSelected(null)
+    );
   };
 
   return (
@@ -49,7 +36,7 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
           hiburans={hiburans}
           onSelect={(e) => {
             setSelected(e);
-            setFormErrors({});
+            resetErrors();
           }}
           isHome={isHome}
         />
