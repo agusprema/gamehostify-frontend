@@ -5,7 +5,7 @@ import ProductGrid from "@/components/sections/Products/ProductGrid";
 import PageTransition from "@/components/animations/PageTransition";
 import Wrapper from "@/components/ui/Wrapper";
 import { normalizeSlidesPayload } from "@/lib/slide/normalize";
-import { fetchJson } from "@/lib/fetchJson";
+import { fetchJson } from "@/lib/api/fetchJson";
 import type { Slide } from "@/components/sections/Hero/slide";
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;

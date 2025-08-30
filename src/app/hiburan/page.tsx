@@ -1,7 +1,7 @@
 import HiburanPage from '@/components/hiburan/HiburanPage';
 import PageTransition from '@/components/animations/PageTransition';
 import { Metadata } from 'next';
-import { fetchJson } from '@/lib/fetchJson';
+import { fetchJson } from '@/lib/api/fetchJson';
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
