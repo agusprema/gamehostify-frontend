@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Hiburan, HiburanPackage } from "./types";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
-import { handleApiErrors } from "@/utils/apiErrorHandler";
+import { handleApiErrors } from "@/lib/api/errorHandler";
 import { HiburanGrid } from "./HiburanGrid";
 import { HiburanModal } from "./HiburanModal";
 import Link from "@/components/ui/Link";

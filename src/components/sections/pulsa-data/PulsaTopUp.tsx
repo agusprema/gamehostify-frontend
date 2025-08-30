@@ -5,7 +5,7 @@ import { Operator, OperatorPackage } from "./types";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { OperatorGrid } from "./OperatorGrid";
-import { handleApiErrors } from "@/utils/apiErrorHandler";
+import { handleApiErrors } from "@/lib/api/errorHandler";
 import Link from "@/components/ui/Link";
 
 export interface PulsaTopUpProps {

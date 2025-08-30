@@ -8,7 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import GameGrid from "./GameGrid";
 import { Game, GamePackage, GameTopUpProps, Category } from "./types";
-import { handleApiErrors } from "@/utils/apiErrorHandler";
+import { handleApiErrors } from "@/lib/api/errorHandler";
 import GameFilterBar from "./GameFilterBar";
 
 /* ---------- Debounce ---------- */
