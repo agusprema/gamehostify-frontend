@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 
 import { getCartToken } from '@/lib/cart/getCartToken';
+import { handleApiErrors } from '@/lib/api/errorHandler';
 import {
   CartData,
   CartItem,
@@ -42,13 +43,27 @@ type RawCartItem = {
   };
 };
 
+interface AddCartParams {
+  purchasable_type: string;
+  purchasable_id: string;
+  target: string;
+  target_type: string;
+  quantity?: number;
+}
+
+interface AddCartResult {
+  success: boolean;
+  errors?: Record<string, string[]>;
+}
+
 interface CartContextValue {
   cart: CartData;
   quantity: number;
   fetchCart: () => Promise<void>;
   fetchQuantity: () => Promise<void>;
   applyCouponCode: (code: string, shouldDelete: boolean) => Promise<boolean>;
-  updateCart: (target: string, id:string) => Promise<boolean>;
+  updateCart: (target: string, id: string) => Promise<boolean>;
+  addToCart: (params: AddCartParams) => Promise<AddCartResult>;
 }
 
 /* -------------------- Context -------------------- */
@@ -196,7 +211,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return false;
     }
     return false;
-  }, [fetchCart]);
+  }, []);
+
+  const addToCart = useCallback(
+    async (params: AddCartParams): Promise<AddCartResult> => {
+      try {
+        const token = await getCartToken();
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Cart-Token': token ?? '',
+          },
+          body: JSON.stringify({
+            purchasable_type: params.purchasable_type,
+            purchasable_id: params.purchasable_id,
+            target: params.target,
+            target_type: params.target_type,
+            quantity: params.quantity ?? 1,
+          }),
+        });
+
+        const json = await res.json();
+        if (!res.ok || json.status !== 'success') {
+          const { fields } = handleApiErrors(json);
+          return { success: false, errors: fields };
+        }
+
+        await Promise.all([fetchCart(), fetchQuantity()]);
+        return { success: true };
+      } catch (err) {
+        console.error('addToCart error:', err);
+        return { success: false };
+      }
+    },
+    [fetchCart, fetchQuantity]
+  );
 
     const updateCart = useCallback(async (target: string, id:string): Promise<boolean> => {
     try {
@@ -234,7 +286,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return false;
     }
     return false;
-  }, [fetchCart]);
+    }, []);
 
   useEffect(() => {
     (async () => {
@@ -248,7 +300,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     fetchCart,
     fetchQuantity,
     applyCouponCode,
-    updateCart
+    updateCart,
+    addToCart,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

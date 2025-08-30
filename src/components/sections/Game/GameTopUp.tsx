@@ -5,10 +5,8 @@ import { Loader2 } from "lucide-react";
 import GameModal from "./GameModal";
 import Link from "@/components/ui/Link";
 import { useCart } from "@/contexts/CartContext";
-import { getCartToken } from "@/lib/cart/getCartToken";
 import GameGrid from "./GameGrid";
 import { Game, GamePackage, GameTopUpProps, Category } from "./types";
-import { handleApiErrors } from "@/lib/api/errorHandler";
 import GameFilterBar from "./GameFilterBar";
 
 /* ---------- Debounce ---------- */
@@ -28,7 +26,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   scrollTriggerRatio = 0.4,
   height = 800,
 }) => {
-  const { fetchQuantity, fetchCart } = useCart();
+  const { addToCart } = useCart();
 
   /* ---------- States ---------- */
   const [games, setGames] = useState<Game[]>(initialGames);
@@ -137,45 +135,26 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     if (!selectedGame || !selectedPackage || !gameAccount.trim()) return;
     setIsProcessing(true);
     try {
-      const token = await getCartToken();
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "X-Cart-Token": token ?? "",
-          },
-          body: JSON.stringify({
-            purchasable_type: selectedPackage.type,
-            purchasable_id: selectedPackage.id,
-            target: gameAccount,
-            target_type: "player_id",
-            quantity: 1,
-          }),
-        }
-      );
+      const { success, errors } = await addToCart({
+        purchasable_type: selectedPackage.type,
+        purchasable_id: selectedPackage.id,
+        target: gameAccount,
+        target_type: "player_id",
+        quantity: 1,
+      });
 
-      const json = await response.json();
-
-      if (!response.ok) {
-        const { fields } = handleApiErrors(json);
-        setFormErrors(fields || {});
+      if (!success) {
+        setFormErrors(errors || {});
         return;
       }
 
-      if (json.status === "success") {
-        await Promise.all([fetchCart(), fetchQuantity()]);
-        setSelectedGame(null);
-      }
+      setSelectedGame(null);
     } catch (err) {
       console.error(err);
     } finally {
       setIsProcessing(false);
     }
-  }, [selectedGame, selectedPackage, gameAccount, fetchQuantity, fetchCart]);
+  }, [selectedGame, selectedPackage, gameAccount, addToCart]);
 
   return (
     <section className="relative py-16">
