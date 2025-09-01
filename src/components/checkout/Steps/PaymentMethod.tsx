@@ -114,4 +114,6 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(({
   );
 });
 
+PaymentMethod.displayName = "PaymentMethod";
+
 export default PaymentMethod;

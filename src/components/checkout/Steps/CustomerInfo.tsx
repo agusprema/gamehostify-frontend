@@ -291,6 +291,10 @@ export default function CustomerInfoForm({
         </div>
       )}
 
+      {updateCartError && (
+        <p className="text-sm text-red-600 dark:text-red-400" role="alert">{updateCartError}</p>
+      )}
+
       <button
         type="submit"
         disabled={isSubmitting}

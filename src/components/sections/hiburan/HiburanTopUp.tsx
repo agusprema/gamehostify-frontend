@@ -1,9 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Hiburan, HiburanPackage } from "./types";
-import { useCart } from "@/contexts/CartContext";
-import { getCartToken } from "@/lib/cart/getCartToken";
-import { handleApiErrors } from "@/utils/apiErrorHandler";
+import useCartAdd from "@/hooks/useCartAdd";
 import { HiburanGrid } from "./HiburanGrid";
 import { HiburanModal } from "./HiburanModal";
 import Link from "@/components/ui/Link";
@@ -14,50 +12,21 @@ export interface HiburanTopUpProps {
 }
 
 export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpProps) {
-  const { fetchCart, fetchQuantity } = useCart();
   const [selected, setSelected] = useState<Hiburan | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const { submit, isProcessing, formErrors, resetErrors } = useCartAdd();
 
   const handleTopUp = async (pkg: HiburanPackage, target: string) => {
     if (!pkg || !target.trim()) return;
-    setIsProcessing(true);
-    try {
-      const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "X-Cart-Token": token ?? "",
-        },
-        body: JSON.stringify({
-          purchasable_type: pkg.type,
-          purchasable_id: pkg.id,
-          target: target.trim(),
-          target_type: "phone",
-          quantity: 1,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        const { fields } = handleApiErrors(json);
-        setFormErrors(fields || {});
-        return;
-      }
-
-      if (json.status === "success") {
-        await Promise.all([fetchCart(), fetchQuantity()]);
-        setSelected(null);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsProcessing(false);
-    }
+    await submit(
+      {
+        purchasable_type: pkg.type,
+        purchasable_id: pkg.id,
+        target: target.trim(),
+        target_type: "phone",
+        quantity: 1,
+      },
+      () => setSelected(null)
+    );
   };
 
   return (
@@ -67,7 +36,7 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
           hiburans={hiburans}
           onSelect={(e) => {
             setSelected(e);
-            setFormErrors({});
+            resetErrors();
           }}
           isHome={isHome}
         />

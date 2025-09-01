@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import ProductCard, { Product } from "./ProductCard";
+// import ProductCard, { Product } from "./ProductCard";
 import GameTopUp from "@/components/sections/Game/GameTopUp";
 import PulsaTopUp from "@/components/sections/pulsa-data/PulsaTopUp";
 import { Operator } from "@/components/sections/pulsa-data/types";

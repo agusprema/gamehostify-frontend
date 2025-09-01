@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useRef, useState, useLayoutEffect, RefObject } from "react";
+import React, { useMemo, useRef, useState, useLayoutEffect } from "react";
 import CartItem from "./CartItem";
 import type { BaseCartItem } from "./types";
 

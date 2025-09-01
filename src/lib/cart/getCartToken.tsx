@@ -1,58 +1,63 @@
-'use client';
+"use client";
+
+// Simple, safe, client-only cart token fetcher with in-memory cache and
+// single-flight behavior to avoid duplicate network calls.
 
 let tokenCache: string | null = null;
-let inFlightRequest: Promise<string | null> | null = null;
+let inFlight: Promise<string | null> | null = null;
 
-export async function getCartToken(): Promise<string | null> {
-  // 1. Gunakan cache jika sudah ada
-  if (tokenCache) return tokenCache;
+type CartTokenResponse = {
+  data?: { token?: string; expires_at?: string };
+  [k: string]: unknown;
+};
 
-  // 2. Jika sedang ada request, tunggu request tersebut
-  if (inFlightRequest) return inFlightRequest;
-
-  // 3. Buat request baru
-  inFlightRequest = (async () => {
-    const storedToken = localStorage.getItem('cart_token');
-    const storedExpiry = localStorage.getItem('cart_token_expiry');
-
-    if (storedToken && storedExpiry) {
-      const expires = new Date(storedExpiry).getTime();
-      const now = new Date().getTime();
-
-      if (now < expires) {
-        tokenCache = storedToken;
-        inFlightRequest = null;
-        return tokenCache;
-      }
-    }
-
-    // Generate token ke backend
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/token/generate`, {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ token: storedToken ?? null }),
+async function requestCartToken(): Promise<string | null> {
+  try {
+    const res = await fetch("/api/cart/token/generate", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
     });
 
-    if (!res.ok) {
-      console.error('Gagal generate cart token');
-      inFlightRequest = null;
-      return null;
-    }
-
-    const json = await res.json();
-    const newToken = json?.data?.token;
-    const expiresAt = json?.data?.expires_at;
-
-    if (newToken && expiresAt) {
-      localStorage.setItem('cart_token', newToken);
-      localStorage.setItem('cart_token_expiry', expiresAt);
-      tokenCache = newToken;
-    }
-
-    inFlightRequest = null;
+    if (!res.ok) return null;
+    const json = (await res.json().catch(() => ({}))) as CartTokenResponse;
+    const token = (json?.data?.token ?? null) as string | null;
+    if (token && token.trim() !== "") tokenCache = token;
     return tokenCache;
-  })();
+  } catch (e) {
+    console.error("getCartToken error:", e);
+    return null;
+  }
+}
 
-  return inFlightRequest;
+/**
+ * Get a cart token for the current visitor.
+ * - Uses in-memory cache to avoid extra requests.
+ * - Collapses concurrent calls into a single request.
+ * - Set force=true to bypass cache and refetch from the server.
+ */
+export async function getCartToken(force = false): Promise<string | null> {
+  if (!force && tokenCache) return tokenCache;
+  if (inFlight) return inFlight;
+  inFlight = requestCartToken().finally(() => {
+    inFlight = null;
+  });
+  return inFlight;
+}
+
+/** Ensure a non-empty cart token is available. Retries once, then throws. */
+export async function ensureCartToken(): Promise<string> {
+  let token = await getCartToken();
+  if (token && token.trim() !== "") return token;
+  token = await getCartToken(true);
+  if (token && token.trim() !== "") return token;
+  throw new Error("Cart token unavailable");
+}
+
+/** Clears the in-memory token cache (does not affect HttpOnly cookie). */
+export function clearCartTokenCache() {
+  tokenCache = null;
 }

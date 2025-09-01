@@ -4,15 +4,13 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import GameModal from "./GameModal";
 import Link from "@/components/ui/Link";
-import { useCart } from "@/contexts/CartContext";
-import { getCartToken } from "@/lib/cart/getCartToken";
+import useCartAdd from "@/hooks/useCartAdd";
 import GameGrid from "./GameGrid";
 import { Game, GamePackage, GameTopUpProps, Category } from "./types";
-import { handleApiErrors } from "@/utils/apiErrorHandler";
 import GameFilterBar from "./GameFilterBar";
 
 /* ---------- Debounce ---------- */
-function debounce<T extends (...args: any[]) => void>(fn: T, delay = 400) {
+function debounce<T extends (...args: unknown[]) => void>(fn: T, delay = 400) {
   let timeout: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
@@ -28,14 +26,14 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   scrollTriggerRatio = 0.4,
   height = 800,
 }) => {
-  const { fetchQuantity, fetchCart } = useCart();
-
+  const { submit, isProcessing: cartProcessing, formErrors, resetErrors } = useCartAdd();
+  
   /* ---------- States ---------- */
   const [games, setGames] = useState<Game[]>(initialGames);
   const [cursor, setCursor] = useState<string | null>(initialCursor);
   const [hasMoreState, setHasMore] = useState(initialHasMore);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -44,7 +42,6 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<GamePackage | null>(null);
   const [gameAccount, setGameAccount] = useState("");
-  const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
 
   /* ---------- Fetch Categories ---------- */
   const fetchCategories = useCallback(async () => {
@@ -84,7 +81,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     }) => {
       if (isFetchingRef.current) return;
       isFetchingRef.current = true;
-      setIsProcessing(true);
+      setIsLoading(true);
 
       try {
         const url = new URL(
@@ -111,7 +108,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
       } finally {
         setLoadingMore(false);
         isFetchingRef.current = false;
-        setIsProcessing(false);
+        setIsLoading(false);
       }
     },
     [search, category]
@@ -135,47 +132,17 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   /* ---------- Handle Top-Up ---------- */
   const handleTopUp = useCallback(async () => {
     if (!selectedGame || !selectedPackage || !gameAccount.trim()) return;
-    setIsProcessing(true);
-    try {
-      const token = await getCartToken();
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "X-Cart-Token": token ?? "",
-          },
-          body: JSON.stringify({
-            purchasable_type: selectedPackage.type,
-            purchasable_id: selectedPackage.id,
-            target: gameAccount,
-            target_type: "player_id",
-            quantity: 1,
-          }),
-        }
-      );
-
-      const json = await response.json();
-
-      if (!response.ok) {
-        const { fields } = handleApiErrors(json);
-        setFormErrors(fields || {});
-        return;
-      }
-
-      if (json.status === "success") {
-        await Promise.all([fetchCart(), fetchQuantity()]);
-        setSelectedGame(null);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [selectedGame, selectedPackage, gameAccount, fetchQuantity, fetchCart]);
+    await submit(
+      {
+        purchasable_type: selectedPackage.type,
+        purchasable_id: selectedPackage.id,
+        target: gameAccount,
+        target_type: "user_id",
+        quantity: 1,
+      },
+      () => setSelectedGame(null)
+    );
+  }, [selectedGame, selectedPackage, gameAccount, submit]);
 
   return (
     <section className="relative py-16">
@@ -194,7 +161,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
               fetchGames({ append: false, searchParam: search, categoryParam: val });
             }}
             categories={categories}
-            isProcessing={isProcessing}
+            isProcessing={isLoading || cartProcessing}
           />
         )}
 
@@ -207,6 +174,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
               setSelectedGame(g);
               setSelectedPackage(null);
               setGameAccount("");
+              resetErrors();
             }}
             fetchMore={handleLoadMore}
             hasMore={hasMoreState}
@@ -215,7 +183,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
             scrollTriggerRatio={scrollTriggerRatio}
           />
         ) : (
-          !isProcessing && (
+          !(isLoading || cartProcessing) && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Game Tidak Ditemukan
@@ -272,7 +240,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         gameAccount={gameAccount}
         setGameAccount={setGameAccount}
         onTopUp={handleTopUp}
-        isProcessing={isProcessing}
+        isProcessing={isLoading || cartProcessing}
       />
     </section>
   );

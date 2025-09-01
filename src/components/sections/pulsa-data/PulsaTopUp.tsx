@@ -2,10 +2,8 @@
 import React, { useState } from "react";
 import { PulsaModal } from "./PulsaModal/PulsaModal";
 import { Operator, OperatorPackage } from "./types";
-import { useCart } from "@/contexts/CartContext";
-import { getCartToken } from "@/lib/cart/getCartToken";
+import useCartAdd from "@/hooks/useCartAdd";
 import { OperatorGrid } from "./OperatorGrid";
-import { handleApiErrors } from "@/utils/apiErrorHandler";
 import Link from "@/components/ui/Link";
 
 export interface PulsaTopUpProps {
@@ -14,50 +12,21 @@ export interface PulsaTopUpProps {
 }
 
 const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) => {
-  const { fetchCart, fetchQuantity } = useCart();
   const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const { submit, isProcessing, formErrors, resetErrors } = useCartAdd();
 
   const handleTopUp = async (pkg: OperatorPackage, phone: string) => {
     if (!pkg || !phone.trim()) return;
-    setIsProcessing(true);
-    try {
-      const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "X-Cart-Token": token ?? "",
-        },
-        body: JSON.stringify({
-          purchasable_type: pkg.type,
-          purchasable_id: pkg.id,
-          target: phone.trim(),
-          target_type: "phone",
-          quantity: 1,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        const { fields } = handleApiErrors(json);
-        setFormErrors(fields || {});
-        return;
-      }
-
-      if (json.status === "success") {
-        await Promise.all([fetchCart(), fetchQuantity()]);
-        setSelectedOperator(null);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsProcessing(false);
-    }
+    await submit(
+      {
+        purchasable_type: pkg.type,
+        purchasable_id: pkg.id,
+        target: phone.trim(),
+        target_type: "phone",
+        quantity: 1,
+      },
+      () => setSelectedOperator(null)
+    );
   };
 
   return (
@@ -67,7 +36,7 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
           operators={operators}
           onSelect={(op) => {
             setSelectedOperator(op);
-            setFormErrors({});
+            resetErrors();
           }}
           isHome={isHome}
         />

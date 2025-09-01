@@ -3,7 +3,7 @@
 import React, {useCallback, useState, useTransition} from "react";
 import { useSearchParams } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
-import { getCartToken } from "@/lib/cart/getCartToken";
+import { ensureCartToken } from "@/lib/cart/getCartToken";
 import { useCart } from "@/contexts/CartContext";
 
 import StepIndicator from "@/components/checkout/Steps/StepIndicator";
@@ -21,7 +21,7 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const referenceId = searchParams.get("reference_id") ?? undefined;
   const [removingId, setRemovingId] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const { fetchCart, fetchQuantity, applyCouponCode, updateCart } = useCart();
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isLoadingCode, setIsLoadingCode] = useState<boolean>(false);
@@ -68,7 +68,7 @@ export default function CheckoutPage() {
       setRemovingId(cartItemId);
       startTransition(async () => {
         try {
-          const token = await getCartToken();
+          const token = await ensureCartToken();
           const res = await fetch(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/remove`,
             {
@@ -76,7 +76,7 @@ export default function CheckoutPage() {
               headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "X-Cart-Token": token ?? "",
+                "X-Cart-Token": token,
               },
               credentials: "include",
               body: JSON.stringify({ cart_item_id: cartItemId }),
