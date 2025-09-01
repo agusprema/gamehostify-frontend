@@ -10,7 +10,7 @@ import { Game, GamePackage, GameTopUpProps, Category } from "./types";
 import GameFilterBar from "./GameFilterBar";
 
 /* ---------- Debounce ---------- */
-function debounce<T extends (...args: any[]) => void>(fn: T, delay = 400) {
+function debounce<T extends (...args: unknown[]) => void>(fn: T, delay = 400) {
   let timeout: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
@@ -137,7 +137,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         purchasable_type: selectedPackage.type,
         purchasable_id: selectedPackage.id,
         target: gameAccount,
-        target_type: "player_id",
+        target_type: "user_id",
         quantity: 1,
       },
       () => setSelectedGame(null)

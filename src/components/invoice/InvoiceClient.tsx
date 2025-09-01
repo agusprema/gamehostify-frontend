@@ -134,9 +134,11 @@ export default function InvoiceClient({
           setPolling(false);
           clearPoll();
         }
-      } catch (err: any) {
-        if (err?.name === "AbortError") return; // ignore
-        setError(err?.message ?? "Gagal memuat invoice.");
+      } catch (err: unknown) {
+        const name = (err as { name?: string }).name;
+        if (name === "AbortError") return; // ignore
+        const message = (err as { message?: string }).message ?? "Gagal memuat invoice.";
+        setError(message);
         setPolling(false);
         clearPoll();
       } finally {

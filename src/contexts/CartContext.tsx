@@ -9,7 +9,7 @@ import React, {
   useCallback,
 } from 'react';
 
-import { getCartToken } from '@/lib/cart/getCartToken';
+import { ensureCartToken, getCartToken } from '@/lib/cart/getCartToken';
 import { handleApiErrors } from '@/lib/api/errorHandler';
 import {
   CartData,
@@ -112,12 +112,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const fetchCart = useCallback(async () => {
     try {
-      const token = await getCartToken();
+      const token = await ensureCartToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart`, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Cart-Token': token ?? '',
+          'X-Cart-Token': token,
         },
         credentials: 'include',
       });
@@ -153,12 +153,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const fetchQuantity = useCallback(async () => {
     try {
-      const token = await getCartToken();
+      const token = await ensureCartToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/quantity`, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Cart-Token': token ?? '',
+          'X-Cart-Token': token,
         },
         credentials: 'include',
       });
@@ -177,13 +177,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const applyCouponCode = useCallback(async (code: string, shouldDelete: boolean): Promise<boolean> => {
     try {
-      const token = await getCartToken();
+      const token = await ensureCartToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/code`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Cart-Token': token ?? '',
+          'X-Cart-Token': token,
         },
         credentials: 'include',
         body: JSON.stringify({ code, '_method': shouldDelete ? 'DELETE' : 'POST' }),
@@ -216,14 +216,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addToCart = useCallback(
     async (params: AddCartParams): Promise<AddCartResult> => {
       try {
-        const token = await getCartToken();
+        const token = await ensureCartToken();
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
           method: 'POST',
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
-            'X-Cart-Token': token ?? '',
+            'X-Cart-Token': token,
           },
           body: JSON.stringify({
             purchasable_type: params.purchasable_type,
@@ -252,13 +252,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const updateCart = useCallback(async (target: string, id:string): Promise<boolean> => {
     try {
-      const token = await getCartToken();
+      const token = await ensureCartToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/update`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'X-Cart-Token': token ?? '',
+          'X-Cart-Token': token,
         },
         credentials: 'include',
         body: JSON.stringify({ target, id }),

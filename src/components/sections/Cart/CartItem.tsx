@@ -12,10 +12,6 @@ interface CartItemProps {
 }
 
 const CartItem = React.memo(function CartItem({ item, removing, onRemove }: CartItemProps) {
-  const totalPkgQty = useMemo(() => {
-    return item.packages?.items?.reduce((acc, it) => acc + (it.quantity ?? 0), 0) ?? 0;
-  }, [item.packages?.items]);
-
   const created = useMemo(() => {
     return item.createdAt ? new Date(item.createdAt).toLocaleDateString("id-ID") : "-";
   }, [item.createdAt]);

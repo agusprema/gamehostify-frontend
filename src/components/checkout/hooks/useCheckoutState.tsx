@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
-import { getCartToken } from "@/lib/cart/getCartToken";
+import { ensureCartToken } from "@/lib/cart/getCartToken";
 import type {
   CheckoutStep,
   CustomerFormValues,
@@ -165,7 +165,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
     setChannelServerErrors({});
 
     try {
-      const cartToken = await getCartToken();
+      const cartToken = await ensureCartToken();
       if (!cartToken) throw new Error("Cart token missing");
 
       const res = await fetch(

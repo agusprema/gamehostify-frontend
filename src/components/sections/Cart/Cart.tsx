@@ -12,7 +12,7 @@ import React, {
 } from "react";
 import dynamic from "next/dynamic";
 import { useCart } from "@/contexts/CartContext";
-import { getCartToken } from "@/lib/cart/getCartToken";
+import { ensureCartToken } from "@/lib/cart/getCartToken";
 
 // --- Dynamic imports (code splitting) ---
 const CartHeader = dynamic(() => import("./CartHeader"), { ssr: false });
@@ -28,9 +28,11 @@ const EmptyCart = dynamic(() => import("./EmptyCart"), {
 });
 
 // Skeleton ringan modul
-const LocalSkeleton = memo(() => (
+const LocalSkeleton = memo(function LocalSkeleton() {
+  return (
   <div className="rounded-xl border border-gray-300 dark:border-gray-700/50 bg-gray-100 dark:bg-gray-800/40 h-16 animate-pulse" />
-));
+  );
+});
 
 // Helper untuk prefetch chunk modul cart saat idle
 const preloadCartChunks = () => {
@@ -52,7 +54,7 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
   const { cart, quantity, fetchCart, fetchQuantity } = useCart();
   const [loadingCart, setLoadingCart] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   // Track last successful fetch
   const [lastFetched, setLastFetched] = useState<number>(0);
@@ -107,7 +109,7 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
       setRemovingId(cartItemId);
       startTransition(async () => {
         try {
-          const token = await getCartToken();
+          const token = await ensureCartToken();
           const res = await fetch(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/remove`,
             {
@@ -115,7 +117,7 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
               headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "X-Cart-Token": token ?? "",
+                "X-Cart-Token": token,
               },
               credentials: "include",
               body: JSON.stringify({ cart_item_id: cartItemId }),
@@ -143,7 +145,7 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
 
   // --- Cart derived state ---
   // Convert CartItem[] to BaseCartItem[] for compatibility
-  const toBaseCartItem = (item: any) => ({
+  const toBaseCartItem = (item: import("@/components/checkout/types/checkout").CartItem) => ({
     name: item.name,
     image: item.image,
     createdAt: item.createdAt || '',
