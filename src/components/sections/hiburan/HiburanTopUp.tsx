@@ -7,6 +7,7 @@ import { handleApiErrors } from "@/utils/apiErrorHandler";
 import { HiburanGrid } from "./HiburanGrid";
 import { HiburanModal } from "./HiburanModal";
 import Link from "@/components/ui/Link";
+import { apiFetch } from "@/lib/apiFetch";
 
 export interface HiburanTopUpProps {
   hiburans: Hiburan[];
@@ -24,7 +25,7 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
     setIsProcessing(true);
     try {
       const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
         method: "POST",
         credentials: "include",
         headers: {

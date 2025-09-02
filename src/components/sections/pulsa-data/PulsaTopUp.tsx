@@ -7,6 +7,7 @@ import { getCartToken } from "@/lib/cart/getCartToken";
 import { OperatorGrid } from "./OperatorGrid";
 import { handleApiErrors } from "@/utils/apiErrorHandler";
 import Link from "@/components/ui/Link";
+import { apiFetch } from "@/lib/apiFetch";
 
 export interface PulsaTopUpProps {
   operators: Operator[];
@@ -24,7 +25,7 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
     setIsProcessing(true);
     try {
       const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
         method: "POST",
         credentials: "include",
         headers: {

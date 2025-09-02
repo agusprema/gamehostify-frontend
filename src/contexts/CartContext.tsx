@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 
 import { getCartToken } from '@/lib/cart/getCartToken';
+import { apiFetch } from '@/lib/apiFetch';
 import {
   CartData,
   CartItem,
@@ -98,7 +99,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const fetchCart = useCallback(async () => {
     try {
       const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart`, {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart`, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
@@ -139,7 +140,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const fetchQuantity = useCallback(async () => {
     try {
       const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/quantity`, {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/quantity`, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
@@ -163,7 +164,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const applyCouponCode = useCallback(async (code: string, shouldDelete: boolean): Promise<boolean> => {
     try {
       const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/code`, {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/code`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -201,7 +202,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const updateCart = useCallback(async (target: string, id:string): Promise<boolean> => {
     try {
       const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/update`, {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/update`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',

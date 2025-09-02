@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { useCart } from "@/contexts/CartContext";
+import { apiFetch } from "@/lib/apiFetch";
 
 import StepIndicator from "@/components/checkout/Steps/StepIndicator";
 import CustomerInfo from "@/components/checkout/Steps/CustomerInfo";
@@ -69,7 +70,7 @@ export default function CheckoutPage() {
       startTransition(async () => {
         try {
           const token = await getCartToken();
-          const res = await fetch(
+          const res = await apiFetch(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/remove`,
             {
               method: "DELETE",

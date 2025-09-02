@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
+import { apiFetch } from "@/lib/apiFetch";
 import type {
   CheckoutStep,
   CustomerFormValues,
@@ -78,7 +79,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
         await Promise.all([
           (async () => {
             try {
-              const res = await fetch(
+              const res = await apiFetch(
                 `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/payment/methods`,
                 { headers: { Accept: "application/json" } }
               );
@@ -168,7 +169,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       const cartToken = await getCartToken();
       if (!cartToken) throw new Error("Cart token missing");
 
-      const res = await fetch(
+      const res = await apiFetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/payment/invoice`,
         {
           method: "POST",

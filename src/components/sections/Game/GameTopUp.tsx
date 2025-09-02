@@ -10,6 +10,7 @@ import GameGrid from "./GameGrid";
 import { Game, GamePackage, GameTopUpProps, Category } from "./types";
 import { handleApiErrors } from "@/utils/apiErrorHandler";
 import GameFilterBar from "./GameFilterBar";
+import { apiFetch } from "@/lib/apiFetch";
 
 /* ---------- Debounce ---------- */
 function debounce<T extends (...args: any[]) => void>(fn: T, delay = 400) {
@@ -49,7 +50,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   /* ---------- Fetch Categories ---------- */
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/category/games`,
         { headers: { Accept: "application/json" }, cache: "no-store" }
       );
@@ -95,7 +96,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         if (searchParam) url.searchParams.set("search", searchParam);
         if (categoryParam) url.searchParams.set("category", categoryParam);
 
-        const res = await fetch(url.toString(), {
+        const res = await apiFetch(url.toString(), {
           headers: { Accept: "application/json" },
           cache: "no-store",
         });
@@ -138,7 +139,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     setIsProcessing(true);
     try {
       const token = await getCartToken();
-      const response = await fetch(
+      const response = await apiFetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`,
         {
           method: "POST",

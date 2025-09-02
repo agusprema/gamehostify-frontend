@@ -1,5 +1,6 @@
 // lib/cart/getCartTokenServer.ts
 import { cookies } from 'next/headers';
+import { apiFetch } from '@/lib/apiFetch';
 
 export async function getCartTokenServer(): Promise<string | null> {
   const cookieStore = await cookies();
@@ -8,7 +9,7 @@ export async function getCartTokenServer(): Promise<string | null> {
   if (cookieToken) return cookieToken;
 
   // Jika tidak ada, panggil endpoint generate token
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/token/generate`, {
+  const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/token/generate`, {
     method: 'POST',
     credentials: 'include',
     headers: { Accept: 'application/json' },
