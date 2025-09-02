@@ -100,7 +100,7 @@ export const viewport = { themeColor: "#6b21a8" };
 
 
 export default async function HomePage() {
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+  const API = process.env.BACKEND_API_BASE_URL ?? '';
 
 
   // Fetch paralel & error safe

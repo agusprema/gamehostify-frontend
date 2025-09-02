@@ -54,7 +54,7 @@ export const viewport = { themeColor: "#6b21a8" };
 
 
 export default async function PulsaDataPage() {
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+  const API = process.env.BACKEND_API_BASE_URL ?? "";
   const json = await fetchJson(
     `${API}api/v1/operators`,
     { headers: { Accept: "application/json" }, next: { revalidate: 3600 } }

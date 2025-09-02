@@ -51,7 +51,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   const fetchCategories = useCallback(async () => {
     try {
       const res = await apiFetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/category/games`,
+        `${process.env.BACKEND_API_BASE_URL}api/v1/category/games`,
         { headers: { Accept: "application/json" }, cache: "no-store" }
       );
       const json = await res.json();
@@ -89,7 +89,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
 
       try {
         const url = new URL(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/games`
+          `${process.env.BACKEND_API_BASE_URL}api/v1/games`
         );
         url.searchParams.set("per_page", "24");
         if (cursorParam) url.searchParams.set("cursor", cursorParam);
@@ -140,7 +140,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     try {
       const token = await getCartToken();
       const response = await apiFetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`,
+        `${process.env.BACKEND_API_BASE_URL}api/v1/cart/add`,
         {
           method: "POST",
           credentials: "include",

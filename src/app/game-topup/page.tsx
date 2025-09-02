@@ -57,7 +57,7 @@ export const viewport = {
 
 
 export default async function TopUpPage() {
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+  const API = process.env.BACKEND_API_BASE_URL ?? '';
 
   const [jsonGames] = await Promise.all([
     fetchJson(API + 'api/v1/games?per_page=24', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),

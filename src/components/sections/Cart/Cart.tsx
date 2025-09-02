@@ -110,7 +110,7 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
         try {
           const token = await getCartToken();
           const res = await apiFetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/remove`,
+            `${process.env.BACKEND_API_BASE_URL}api/v1/cart/remove`,
             {
               method: "DELETE",
               headers: {

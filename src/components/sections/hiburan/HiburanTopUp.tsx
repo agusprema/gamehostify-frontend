@@ -25,7 +25,7 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
     setIsProcessing(true);
     try {
       const token = await getCartToken();
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
+      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/add`, {
         method: "POST",
         credentials: "include",
         headers: {

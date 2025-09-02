@@ -50,7 +50,7 @@ const WaitingForPayment: React.FC<Props> = ({ transaction, onPaid }) => {
   // Polling every 5s to check if paid
   useEffect(() => {
     const interval = setInterval(async () => {
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/payment/${transaction.reference_id}/check`, {
+      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/payment/${transaction.reference_id}/check`, {
         method: 'GET',
         headers: {
           Accept: 'application/json',

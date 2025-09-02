@@ -1,17 +1,21 @@
 /**
- * apiFetch: A thin wrapper around fetch that injects `X-BFF-Auth`
- * for requests targeting the configured backend base URL.
+ * apiFetch: Route calls to backend via server-side proxy under `/api/...`.
+ * Any URL that starts with configured API base is rewritten to the proxy path.
  */
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
-  const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? '').toString();
-  const bffKey = (process.env.NEXT_PUBLIC_BFF_API_KEYS ?? '').toString();
+  // Normalize base (strip trailing slash)
+  const rawBase = (
+    process.env.BACKEND_API_BASE_URL ||
+    ''
+  ).toString();
+  const apiBase = rawBase.replace(/\/$/, '');
+  const isServer = typeof window === 'undefined';
 
   // Resolve the URL string from various input types
   let urlStr: string;
   if (typeof input === 'string') {
     urlStr = input;
   } else if (typeof (input as any)?.url === 'string') {
-    // Request or similar with a url property
     urlStr = (input as any).url as string;
   } else if (input instanceof URL) {
     urlStr = input.toString();
@@ -19,13 +23,48 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     urlStr = String(input);
   }
 
-  // Merge headers and conditionally attach X-BFF-Auth
-  const headers = new Headers(init.headers as HeadersInit | undefined);
-  const shouldAttach = Boolean(apiBase) && urlStr.startsWith(apiBase) && Boolean(bffKey);
-  if (shouldAttach && !headers.has('X-BFF-Auth')) {
-    headers.set('X-BFF-Auth', bffKey);
+  // If the URL targets the backend base, rewrite to server-side proxy
+  let finalUrl = urlStr;
+  if (apiBase && urlStr.startsWith(apiBase)) {
+    try {
+      const u = new URL(urlStr);
+      // Keep the same path under /api to look clean
+      finalUrl = `${u.pathname}${u.search}`;
+    } catch {
+      // Fallback: strip base prefix naively
+      const stripped = urlStr.slice(apiBase.length).replace(/^\/+/, '');
+      finalUrl = `/${stripped}`;
+    }
   }
 
-  return fetch(urlStr, { ...init, headers });
-}
+  // Fallback: tolerate missing env causing strings like `undefinedapi/...` or `api/...`
+  if (!/^(https?:)?\/\//i.test(finalUrl)) {
+    const m = finalUrl.match(/^\s*(?:undefined|null)?\/?(api\/.*)$/i);
+    if (m && m[1]) {
+      finalUrl = `/${m[1]}`;
+    }
+  }
 
+  // On the server, make relative URL absolute using app base URL
+  if (isServer && finalUrl.startsWith('/')) {
+    let appBase = (
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      process.env.APP_URL ||
+      process.env.VERCEL_URL ||
+      ''
+    ).toString();
+    if (appBase && !/^https?:\/\//i.test(appBase)) {
+      appBase = `https://${appBase}`;
+    }
+    appBase = appBase.replace(/\/$/, '');
+    if (appBase) {
+      finalUrl = `${appBase}${finalUrl}`;
+    }
+  }
+
+  // Merge headers; ensure client never leaks X-BFF-Auth
+  const headers = new Headers(init.headers as HeadersInit | undefined);
+  if (headers.has('X-BFF-Auth')) headers.delete('X-BFF-Auth');
+
+  return fetch(finalUrl, { ...init, headers });
+}

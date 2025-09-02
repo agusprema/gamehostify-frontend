@@ -28,7 +28,7 @@ export async function getCartToken(): Promise<string | null> {
     }
 
     // Generate token ke backend
-    const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/token/generate`, {
+    const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/token/generate`, {
       method: 'POST',
       headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       credentials: 'include',
