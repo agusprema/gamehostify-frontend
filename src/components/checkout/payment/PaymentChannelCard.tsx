@@ -43,7 +43,7 @@ const PaymentChannelCard: React.FC<PaymentChannelCardProps> = ({
       onClick={() => onSelect(channel.code, category)}
     >
       <Image
-        src={`${process.env.NEXT_PUBLIC_API_BASE_URL}storage/${channel.logo}`}
+        src={`${process.env.BACKEND_API_BASE_URL}storage/${channel.logo}`}
         alt={channel.name}
         width={48}
         height={48}

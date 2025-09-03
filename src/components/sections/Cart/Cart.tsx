@@ -13,6 +13,7 @@ import React, {
 import dynamic from "next/dynamic";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
+import { apiFetch } from "@/lib/apiFetch";
 
 // --- Dynamic imports (code splitting) ---
 const CartHeader = dynamic(() => import("./CartHeader"), { ssr: false });
@@ -108,15 +109,16 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
       startTransition(async () => {
         try {
           const token = await getCartToken();
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/remove`,
+          const headers: Record<string, string> = {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          };
+          if (token) headers["X-Cart-Token"] = token;
+          const res = await apiFetch(
+            `${process.env.BACKEND_API_BASE_URL}api/v1/cart/remove`,
             {
               method: "DELETE",
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                "X-Cart-Token": token ?? "",
-              },
+              headers,
               credentials: "include",
               body: JSON.stringify({ cart_item_id: cartItemId }),
             }

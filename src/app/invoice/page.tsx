@@ -13,6 +13,21 @@ import type { Metadata } from "next";
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
 
+const metadataBase = (() => {
+  try {
+    return app_url ? new URL(app_url) : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+const ogUrl = (() => {
+  try {
+    return app_url ? new URL('invoice', app_url) : '/invoice';
+  } catch {
+    return '/invoice';
+  }
+})();
+
 export const metadata: Metadata = {
   title: `Cek Invoice Pembayaran & Pengiriman | ${app_name}`,
   description: `Cek status pembayaran, pengiriman, dan detail invoice transaksi Anda di ${app_name}. Masukkan Reference ID untuk melihat status pesanan dan riwayat transaksi Anda.`,
@@ -25,7 +40,7 @@ export const metadata: Metadata = {
     'riwayat transaksi',
     `invoice ${app_name}`,
   ],
-  metadataBase: new URL(app_url ?? ""),
+  metadataBase,
   alternates: {
     canonical: '/invoice',
   },
@@ -33,7 +48,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Cek Invoice Pembayaran & Pengiriman | ${app_name}`,
     description: `Cek status pembayaran, pengiriman, dan detail invoice transaksi Anda di ${app_name}. Masukkan Reference ID untuk melihat status pesanan dan riwayat transaksi Anda.`,
-    url: new URL(`${app_url ?? ""}invoice`),
+    url: ogUrl,
     siteName: app_name,
     images: [
       {

@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   ShoppingCart,
-  Search,
   Menu,
   X,
   Zap,
@@ -11,10 +10,15 @@ import {
   Tv,
   Wallet,
   Gamepad2,
+  User as UserIcon,
+  ChevronDown,
 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import Link from "@/components/ui/Link";
 import ThemeSwitcher from '../ui/ThemeSwitcher';
+import { useAuthStatus } from '@/hooks/useAuthStatus';
+import { logout } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 
 interface HeaderProps {
   onCartClick: () => void;
@@ -26,6 +30,9 @@ export default function Header({ onCartClick }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProdukOpen, setIsProdukOpen] = useState(false);
   const produkDropdownRef = useRef<HTMLDivElement>(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!isProdukOpen) return;
@@ -42,9 +49,20 @@ export default function Header({ onCartClick }: HeaderProps) {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isProdukOpen]);
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+    function onDocClick(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [isUserMenuOpen]);
   const pathname = usePathname();
   const currentPage = pathname;
   const { quantity } = useCart();
+  const { authenticated, user, loading, refresh } = useAuthStatus();
 
   const navItems = [
     { label: 'Home', path: '/' },
@@ -161,17 +179,59 @@ export default function Header({ onCartClick }: HeaderProps) {
             </nav>
           </div>
 
-          {/* Search + Cart + Theme + Menu */}
+          {/* Auth + Cart + Theme + Menu */}
           <div className="flex items-center gap-4">
-            {/* Search */}
-            <div className="hidden sm:flex items-center bg-gray-100 dark:bg-gray-900 rounded-lg px-3 py-1.5 border border-gray-300 dark:border-gray-700 focus-within:border-primary-500 transition-all">
-              <Search className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="bg-transparent text-gray-900 dark:text-white text-sm w-36 focus:w-56 transition-all duration-300 outline-none"
-              />
-            </div>
+            {/* Auth */}
+            {!loading && !authenticated && (
+              <div className="hidden sm:flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-3 py-1.5 text-sm rounded-md bg-primary-600 hover:bg-primary-500 text-white transition"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
+            {!loading && authenticated && (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen((v) => !v)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition"
+                >
+                  <UserIcon className="h-4 w-4" />
+                  <span className="text-sm max-w-[120px] truncate">{user?.name || user?.email || 'Akun'}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-40 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg z-50">
+                    <Link
+                      href="/profile"
+                      onNavigateStart={() => setIsUserMenuOpen(false)}
+                      className="block px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        await logout();
+                        setIsUserMenuOpen(false);
+                        await refresh();
+                        router.push('/login');
+                      }}
+                      className="w-full text-left block px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Cart */}
             <button
@@ -218,6 +278,47 @@ export default function Header({ onCartClick }: HeaderProps) {
                   {label}
                 </Link>
               ))}
+              {/* Auth mobile */}
+              {!loading && !authenticated && (
+                <div className="flex items-center gap-2 px-2">
+                  <Link
+                    href="/login"
+                    onNavigateStart={() => setIsMenuOpen(false)}
+                    className="flex-1 text-center px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:border-primary-500 hover:text-primary-600 dark:hover:text-primary-400 transition"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    onNavigateStart={() => setIsMenuOpen(false)}
+                    className="flex-1 text-center px-3 py-2 rounded-md bg-primary-600 hover:bg-primary-500 text-white transition"
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+              {!loading && authenticated && (
+                <div className="px-2">
+                  <Link
+                    href="/profile"
+                    onNavigateStart={() => setIsMenuOpen(false)}
+                    className="block px-3 py-2 rounded-md text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      await logout();
+                      setIsMenuOpen(false);
+                      await refresh();
+                      router.push('/login');
+                    }}
+                    className="w-full text-left block px-3 py-2 rounded-md text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
               {/* Dropdown Produk di mobile */}
               {/* <div className="mt-2">
                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 px-2">Produk</span>

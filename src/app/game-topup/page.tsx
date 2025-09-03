@@ -7,6 +7,22 @@ import { fetchJson } from '@/lib/fetchJson';
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
 
+// Build URLs safely in case env is missing/invalid
+const metadataBase = (() => {
+  try {
+    return app_url ? new URL(app_url) : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+const ogUrl = (() => {
+  try {
+    return app_url ? new URL('game-topup', app_url) : '/game-topup';
+  } catch {
+    return '/game-topup';
+  }
+})();
+
 export const metadata: Metadata = {
   title: `Top-up Game Online Murah & Instan | ${app_name}`,
   description: `Top-up Mobile Legends, Free Fire, PUBG, Valorant, Genshin Impact, dan game populer lainnya dengan harga termurah, diskon, serta pengiriman instan hanya di ${app_name}.`,
@@ -21,7 +37,7 @@ export const metadata: Metadata = {
     'voucher game online',
     `top up ${app_name}`,
   ],
-  metadataBase: new URL(app_url ?? ""),
+  metadataBase,
   alternates: {
     canonical: '/game-topup',
   },
@@ -29,7 +45,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Top-up Game Online Murah & Instan | ${app_name}`,
     description: `Top-up MLBB, Free Fire, Genshin Impact, PUBG, Valorant, dan ratusan game lainnya dengan harga murah & pengiriman cepat hanya di ${app_name}.`,
-    url: new URL(`${app_url ?? ""}topup`),
+    url: ogUrl,
     siteName: app_name,
     images: [
       {
@@ -57,7 +73,7 @@ export const viewport = {
 
 
 export default async function TopUpPage() {
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+  const API = process.env.BACKEND_API_BASE_URL ?? '';
 
   const [jsonGames] = await Promise.all([
     fetchJson(API + 'api/v1/games?per_page=24', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),

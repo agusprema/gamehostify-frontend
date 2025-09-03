@@ -10,6 +10,7 @@ import GameGrid from "./GameGrid";
 import { Game, GamePackage, GameTopUpProps, Category } from "./types";
 import { handleApiErrors } from "@/utils/apiErrorHandler";
 import GameFilterBar from "./GameFilterBar";
+import { apiFetch } from "@/lib/apiFetch";
 
 /* ---------- Debounce ---------- */
 function debounce<T extends (...args: any[]) => void>(fn: T, delay = 400) {
@@ -49,8 +50,8 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   /* ---------- Fetch Categories ---------- */
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/category/games`,
+      const res = await apiFetch(
+        `${process.env.BACKEND_API_BASE_URL}api/v1/category/games`,
         { headers: { Accept: "application/json" }, cache: "no-store" }
       );
       const json = await res.json();
@@ -88,14 +89,14 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
 
       try {
         const url = new URL(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/games`
+          `${process.env.BACKEND_API_BASE_URL}api/v1/games`
         );
         url.searchParams.set("per_page", "24");
         if (cursorParam) url.searchParams.set("cursor", cursorParam);
         if (searchParam) url.searchParams.set("search", searchParam);
         if (categoryParam) url.searchParams.set("category", categoryParam);
 
-        const res = await fetch(url.toString(), {
+        const res = await apiFetch(url.toString(), {
           headers: { Accept: "application/json" },
           cache: "no-store",
         });
@@ -138,21 +139,22 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     setIsProcessing(true);
     try {
       const token = await getCartToken();
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`,
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+      if (token) headers["X-Cart-Token"] = token;
+      const response = await apiFetch(
+        `${process.env.BACKEND_API_BASE_URL}api/v1/cart/add`,
         {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "X-Cart-Token": token ?? "",
-          },
+          headers,
           body: JSON.stringify({
             purchasable_type: selectedPackage.type,
             purchasable_id: selectedPackage.id,
             target: gameAccount,
-            target_type: "player_id",
+            target_type: "user_id",
             quantity: 1,
           }),
         }

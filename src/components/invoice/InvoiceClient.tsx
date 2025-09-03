@@ -6,6 +6,7 @@ import QRCode from "react-qr-code";
 import Wrapper from "@/components/ui/Wrapper";
 import InvoiceSkeleton from "./InvoiceSkeleton";
 import { readableStatus, statusColor } from "./status";
+import { apiFetch } from "@/lib/apiFetch";
 
 interface InvoiceItem {
   package_name: string;
@@ -34,7 +35,7 @@ interface InvoiceData {
   items: InvoiceItem[];
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+const API_BASE = process.env.BACKEND_API_BASE_URL ?? "";
 
 // Helper format rupiah
 const formatRupiah = (val: number) =>
@@ -108,7 +109,7 @@ export default function InvoiceClient({
       }
 
       try {
-        const res = await fetch(`${API_BASE}api/v1/invoice/${ref}`, {
+        const res = await apiFetch(`${API_BASE}api/v1/invoice/${ref}`, {
           headers: { Accept: "application/json" },
           cache: "no-store",
           signal: ac.signal,

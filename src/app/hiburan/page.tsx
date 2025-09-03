@@ -6,10 +6,25 @@ import { fetchJson } from '@/lib/fetchJson';
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
 
+const metadataBase = (() => {
+  try {
+    return app_url ? new URL(app_url) : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+const ogUrl = (() => {
+  try {
+    return app_url ? new URL('hiburan', app_url) : '/hiburan';
+  } catch {
+    return '/hiburan';
+  }
+})();
+
 export const metadata: Metadata = {
   title: `Layanan Hiburan & Streaming | ${app_name}`,
   description: `Beli paket Netflix, VIU, dan layanan hiburan lainnya dengan harga terbaik di ${app_name}.`,
-  metadataBase: new URL(app_url ?? ''),
+  metadataBase,
   alternates: {
     canonical: '/hiburan',
   },
@@ -17,7 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Layanan Hiburan & Streaming | ${app_name}`,
     description: `Nikmati berbagai layanan streaming populer dengan harga murah hanya di ${app_name}.`,
-    url: new URL(`${app_url ?? ''}hiburan`),
+    url: ogUrl,
     siteName: app_name,
     images: [
       {
@@ -44,7 +59,7 @@ export const viewport = {
 };
 
 export default async function Hiburan() {
-  const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+  const API = process.env.BACKEND_API_BASE_URL ?? '';
 
   const [json] = await Promise.all([
     fetchJson(API + 'api/v1/entertainments?per_page=24', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),

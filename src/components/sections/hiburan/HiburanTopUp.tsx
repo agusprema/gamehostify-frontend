@@ -7,6 +7,7 @@ import { handleApiErrors } from "@/utils/apiErrorHandler";
 import { HiburanGrid } from "./HiburanGrid";
 import { HiburanModal } from "./HiburanModal";
 import Link from "@/components/ui/Link";
+import { apiFetch } from "@/lib/apiFetch";
 
 export interface HiburanTopUpProps {
   hiburans: Hiburan[];
@@ -24,14 +25,15 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
     setIsProcessing(true);
     try {
       const token = await getCartToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}api/v1/cart/add`, {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+      if (token) headers["X-Cart-Token"] = token;
+      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/add`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "X-Cart-Token": token ?? "",
-        },
+        headers,
         body: JSON.stringify({
           purchasable_type: pkg.type,
           purchasable_id: pkg.id,
