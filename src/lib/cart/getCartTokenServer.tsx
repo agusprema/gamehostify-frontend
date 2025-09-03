@@ -12,7 +12,8 @@ export async function getCartTokenServer(): Promise<string | null> {
   const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/token/generate`, {
     method: 'POST',
     credentials: 'include',
-    headers: { Accept: 'application/json' },
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
   });
 
   if (!res.ok) return null;

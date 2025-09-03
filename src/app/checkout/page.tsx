@@ -5,6 +5,21 @@ import type { Metadata } from "next";
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
 
+const metadataBase = (() => {
+  try {
+    return app_url ? new URL(app_url) : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+const ogUrl = (() => {
+  try {
+    return app_url ? new URL('checkout', app_url) : '/checkout';
+  } catch {
+    return '/checkout';
+  }
+})();
+
 export const metadata: Metadata = {
   title: `Checkout & Pembayaran | ${app_name}`,
   description: `Proses checkout, pembayaran, dan konfirmasi pesanan Anda di ${app_name}. Pastikan data dan metode pembayaran sudah benar sebelum melanjutkan transaksi.`,
@@ -17,7 +32,7 @@ export const metadata: Metadata = {
     'bayar pesanan',
     `checkout ${app_name}`,
   ],
-  metadataBase: new URL(app_url ?? ""),
+  metadataBase,
   alternates: {
     canonical: '/checkout',
   },
@@ -25,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: `Checkout & Pembayaran | ${app_name}`,
     description: `Proses checkout, pembayaran, dan konfirmasi pesanan Anda di ${app_name}. Pastikan data dan metode pembayaran sudah benar sebelum melanjutkan transaksi.`,
-    url: new URL(`${app_url ?? ""}checkout`),
+    url: ogUrl,
     siteName: app_name,
     images: [
       {

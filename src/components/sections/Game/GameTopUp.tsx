@@ -139,21 +139,22 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     setIsProcessing(true);
     try {
       const token = await getCartToken();
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      };
+      if (token) headers["X-Cart-Token"] = token;
       const response = await apiFetch(
         `${process.env.BACKEND_API_BASE_URL}api/v1/cart/add`,
         {
           method: "POST",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            "X-Cart-Token": token ?? "",
-          },
+          headers,
           body: JSON.stringify({
             purchasable_type: selectedPackage.type,
             purchasable_id: selectedPackage.id,
             target: gameAccount,
-            target_type: "player_id",
+            target_type: "user_id",
             quantity: 1,
           }),
         }

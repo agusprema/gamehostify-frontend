@@ -11,6 +11,21 @@ import type { Slide } from "@/components/sections/Hero/slide";
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
 
+const metadataBase = (() => {
+  try {
+    return app_url ? new URL(app_url) : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+const ogUrl = (() => {
+  try {
+    return app_url ? new URL('/', app_url) : '/';
+  } catch {
+    return '/';
+  }
+})();
+
 // Dynamic import (lazy load)
 const Faq = dynamic(() => import("@/components/sections/Faq/Faq"));
 const Testimonials = dynamic(() => import("@/components/sections/Testimonials/Testimonials"));
@@ -68,13 +83,13 @@ export const metadata = {
     'top up diamond',
     `${app_name} top up`
   ],
-  metadataBase: new URL(app_url ?? ""),
+  metadataBase,
   alternates: { canonical: '/' },
   robots: 'index, follow',
   openGraph: {
     title: `${app_name} – Top-up Game, Pulsa & Paket Data, Langganan Digital`,
     description: `Top-up game favorit, isi pulsa & paket internet Telkomsel/Indosat/XL/Tri, dan beli langganan digital dengan harga terbaik di ${app_name}.`,
-    url: new URL(app_url ?? ""),
+    url: ogUrl,
     siteName: app_name,
     images: [
       {

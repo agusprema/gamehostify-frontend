@@ -4,56 +4,84 @@ let tokenCache: string | null = null;
 let inFlightRequest: Promise<string | null> | null = null;
 import { apiFetch } from '@/lib/apiFetch';
 
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()!.split(';').shift() || null;
+  return null;
+}
+
 export async function getCartToken(): Promise<string | null> {
-  // 1. Gunakan cache jika sudah ada
+  // Use in-memory cache first
   if (tokenCache) return tokenCache;
 
-  // 2. Jika sedang ada request, tunggu request tersebut
+  // Check cookie on client
+  const cookieToken = readCookie('X-Cart-Token');
+  if (cookieToken) {
+    tokenCache = cookieToken;
+    return tokenCache;
+  }
+
+  // Coalesce concurrent generate calls
   if (inFlightRequest) return inFlightRequest;
 
-  // 3. Buat request baru
   inFlightRequest = (async () => {
-    const storedToken = localStorage.getItem('cart_token');
-    const storedExpiry = localStorage.getItem('cart_token_expiry');
+    try {
+      // Endpoint hanya mendukung POST; backend tidak mewajibkan login
+      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/token/generate`, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({}),
+      });
 
-    if (storedToken && storedExpiry) {
-      const expires = new Date(storedExpiry).getTime();
-      const now = new Date().getTime();
-
-      if (now < expires) {
-        tokenCache = storedToken;
+      if (!res.ok) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Gagal generate cart token (status ' + res.status + ').');
+        }
         inFlightRequest = null;
-        return tokenCache;
+        return null;
       }
-    }
 
-    // Generate token ke backend
-    const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/token/generate`, {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ token: storedToken ?? null }),
-    });
+      const json = await res.json().catch(() => null as any);
+      const newToken: string | null = json?.data?.token ?? null;
+      if (newToken) tokenCache = newToken;
 
-    if (!res.ok) {
-      console.error('Gagal generate cart token');
+      inFlightRequest = null;
+      return tokenCache;
+    } catch (e) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Cart token gagal dibuat (network).');
+      }
       inFlightRequest = null;
       return null;
     }
-
-    const json = await res.json();
-    const newToken = json?.data?.token;
-    const expiresAt = json?.data?.expires_at;
-
-    if (newToken && expiresAt) {
-      localStorage.setItem('cart_token', newToken);
-      localStorage.setItem('cart_token_expiry', expiresAt);
-      tokenCache = newToken;
-    }
-
-    inFlightRequest = null;
-    return tokenCache;
   })();
 
   return inFlightRequest;
+}
+
+/**
+ * Clear in-memory cache and optionally delete the cookie on client.
+ */
+export function resetCartTokenCache(options: { clearCookie?: boolean } = {}) {
+  tokenCache = null;
+  inFlightRequest = null;
+  if (options.clearCookie && typeof document !== 'undefined') {
+    try {
+      // Expire the cookie immediately
+      document.cookie = 'X-Cart-Token=; Max-Age=0; path=/';
+    } catch {
+      // ignore cookie clear failures
+    }
+  }
+}
+
+/**
+ * Force-refresh the cart token by clearing cache+cookie then generating again.
+ */
+export async function regenerateCartToken(): Promise<string | null> {
+  resetCartTokenCache({ clearCookie: true });
+  return getCartToken();
 }

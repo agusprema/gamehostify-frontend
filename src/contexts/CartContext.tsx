@@ -99,12 +99,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const fetchCart = useCallback(async () => {
     try {
       const token = await getCartToken();
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      };
+      if (token) headers['X-Cart-Token'] = token;
       const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart`, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-Cart-Token': token ?? '',
-        },
+        headers,
         credentials: 'include',
       });
 
@@ -140,12 +141,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const fetchQuantity = useCallback(async () => {
     try {
       const token = await getCartToken();
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      };
+      if (token) headers['X-Cart-Token'] = token;
       const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/quantity`, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-Cart-Token': token ?? '',
-        },
+        headers,
         credentials: 'include',
       });
 
@@ -164,13 +166,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const applyCouponCode = useCallback(async (code: string, shouldDelete: boolean): Promise<boolean> => {
     try {
       const token = await getCartToken();
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      };
+      if (token) headers['X-Cart-Token'] = token;
       const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/code`, {
         method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-Cart-Token': token ?? '',
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ code, '_method': shouldDelete ? 'DELETE' : 'POST' }),
       });
@@ -202,13 +205,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const updateCart = useCallback(async (target: string, id:string): Promise<boolean> => {
     try {
       const token = await getCartToken();
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      };
+      if (token) headers['X-Cart-Token'] = token;
       const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/update`, {
         method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          'X-Cart-Token': token ?? '',
-        },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ target, id }),
       });

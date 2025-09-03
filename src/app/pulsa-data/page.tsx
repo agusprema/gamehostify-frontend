@@ -7,6 +7,21 @@ import { fetchJson } from "@/lib/fetchJson";
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
 
+const metadataBase = (() => {
+  try {
+    return app_url ? new URL(app_url) : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+const ogUrl = (() => {
+  try {
+    return app_url ? new URL('pulsa-data', app_url) : '/pulsa-data';
+  } catch {
+    return '/pulsa-data';
+  }
+})();
+
 export const metadata: Metadata = {
   title: `Beli Pulsa Online & Paket Data Murah Semua Operator | ${app_name}`,
   description: `Top-up pulsa & paket internet Telkomsel, Indosat, XL, Tri dengan harga termurah, proses instan, dan 100% aman hanya di ${app_name}.`,
@@ -22,13 +37,13 @@ export const metadata: Metadata = {
     `paket data ${app_name}`,
     "pulsa online 24 jam",
   ],
-  metadataBase: new URL(app_url ?? ""),
+  metadataBase,
   alternates: { canonical: "/pulsa-data" },
   robots: "index, follow",
   openGraph: {
     title: `Beli Pulsa Online & Paket Data | ${app_name}`,
     description: `Isi ulang pulsa & paket internet semua operator dengan harga murah, aman, dan cepat hanya di ${app_name}.`,
-    url: new URL(`${app_url ?? ""}pulsa-data`),
+    url: ogUrl,
     siteName: app_name,
     images: [
       {
