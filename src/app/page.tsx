@@ -1,5 +1,6 @@
 
 import dynamic from "next/dynamic";
+import { joinUrl } from "@/lib/url";
 import Hero from "@/components/sections/Hero/Hero";
 import ProductGrid from "@/components/sections/Products/ProductGrid";
 import PageTransition from "@/components/animations/PageTransition";
@@ -93,10 +94,10 @@ export const metadata = {
     siteName: app_name,
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_OG_IMAGE}og-image.jpg`,
+        url: joinUrl(process.env.NEXT_PUBLIC_OG_IMAGE, 'og-image.jpg'),
         width: 1200,
         height: 630,
-        alt: `${app_name} – Top-up Game & Pulsa`,
+      alt: `${app_name} – Top-up Game & Pulsa`,
       },
     ],
     locale: 'id_ID',
@@ -106,7 +107,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: `${app_name} – Top-up Game, Pulsa & Paket Data Murah`,
     description: `Top-up MLBB, FF, Genshin, beli pulsa & paket data instan, plus langganan digital—semua di ${app_name}.`,
-    images: [`${process.env.NEXT_PUBLIC_OG_IMAGE}og-image.jpg`],
+    images: [joinUrl(process.env.NEXT_PUBLIC_OG_IMAGE, 'og-image.jpg')],
     site: process.env.NEXT_PUBLIC_TWITER_TAG,
   },
 };
@@ -120,10 +121,10 @@ export default async function HomePage() {
 
   // Fetch paralel & error safe
   const [jsonGames, jsonOperators, jsonSlider, jsonEntertaiments] = await Promise.all([
-    fetchJson(API + 'api/v1/games?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
-    fetchJson(API + 'api/v1/operators?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
-    fetchJson(API + 'api/v1/contents/slider', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
-    fetchJson(API + 'api/v1/entertainments?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson(joinUrl(API, 'api/v1/games?per_page=6'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson(joinUrl(API, 'api/v1/operators?per_page=6'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson(joinUrl(API, 'api/v1/contents/slider'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson(joinUrl(API, 'api/v1/entertainments?per_page=6'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
   ]);
 
   const dataGames = jsonGames?.data ?? {};

@@ -11,6 +11,7 @@ import { Game, GamePackage, GameTopUpProps, Category } from "./types";
 import { handleApiErrors } from "@/utils/apiErrorHandler";
 import GameFilterBar from "./GameFilterBar";
 import { apiFetch } from "@/lib/apiFetch";
+import { joinUrl } from "@/lib/url";
 
 /* ---------- Debounce ---------- */
 function debounce<T extends (...args: any[]) => void>(fn: T, delay = 400) {
@@ -51,7 +52,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   const fetchCategories = useCallback(async () => {
     try {
       const res = await apiFetch(
-        `${process.env.BACKEND_API_BASE_URL}api/v1/category/games`,
+        joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/category/games'),
         { headers: { Accept: "application/json" }, cache: "no-store" }
       );
       const json = await res.json();
@@ -88,14 +89,13 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
       setIsProcessing(true);
 
       try {
-        const url = new URL(
-          `${process.env.BACKEND_API_BASE_URL}api/v1/games`
-        );
+        const url = new URL("api/v1/games", process.env.NEXT_PUBLIC_BASE_URL);
         url.searchParams.set("per_page", "24");
         if (cursorParam) url.searchParams.set("cursor", cursorParam);
         if (searchParam) url.searchParams.set("search", searchParam);
         if (categoryParam) url.searchParams.set("category", categoryParam);
 
+        console.log(url.toString());
         const res = await apiFetch(url.toString(), {
           headers: { Accept: "application/json" },
           cache: "no-store",
@@ -145,7 +145,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
       };
       if (token) headers["X-Cart-Token"] = token;
       const response = await apiFetch(
-        `${process.env.BACKEND_API_BASE_URL}api/v1/cart/add`,
+        joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/add'),
         {
           method: "POST",
           credentials: "include",

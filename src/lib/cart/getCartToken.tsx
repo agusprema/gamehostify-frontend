@@ -3,6 +3,7 @@
 let tokenCache: string | null = null;
 let inFlightRequest: Promise<string | null> | null = null;
 import { apiFetch } from '@/lib/apiFetch';
+import { joinUrl } from '@/lib/url';
 
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -29,7 +30,7 @@ export async function getCartToken(): Promise<string | null> {
   inFlightRequest = (async () => {
     try {
       // Endpoint hanya mendukung POST; backend tidak mewajibkan login
-      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/token/generate`, {
+      const res = await apiFetch(joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/token/generate'), {
         method: 'POST',
         headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
         credentials: 'include',

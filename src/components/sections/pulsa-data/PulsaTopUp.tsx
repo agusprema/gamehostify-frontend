@@ -8,6 +8,7 @@ import { OperatorGrid } from "./OperatorGrid";
 import { handleApiErrors } from "@/utils/apiErrorHandler";
 import Link from "@/components/ui/Link";
 import { apiFetch } from "@/lib/apiFetch";
+import { joinUrl } from "@/lib/url";
 
 export interface PulsaTopUpProps {
   operators: Operator[];
@@ -30,7 +31,7 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
         Accept: "application/json",
       };
       if (token) headers["X-Cart-Token"] = token;
-      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/add`, {
+      const res = await apiFetch(joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/add'), {
         method: "POST",
         credentials: "include",
         headers,

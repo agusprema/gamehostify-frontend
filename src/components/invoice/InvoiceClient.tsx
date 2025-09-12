@@ -7,6 +7,7 @@ import Wrapper from "@/components/ui/Wrapper";
 import InvoiceSkeleton from "./InvoiceSkeleton";
 import { readableStatus, statusColor } from "./status";
 import { apiFetch } from "@/lib/apiFetch";
+import { joinUrl } from "@/lib/url";
 
 interface InvoiceItem {
   package_name: string;
@@ -109,7 +110,7 @@ export default function InvoiceClient({
       }
 
       try {
-        const res = await apiFetch(`${API_BASE}api/v1/invoice/${ref}`, {
+        const res = await apiFetch(joinUrl(API_BASE, `api/v1/invoice/${ref}`), {
           headers: { Accept: "application/json" },
           cache: "no-store",
           signal: ac.signal,

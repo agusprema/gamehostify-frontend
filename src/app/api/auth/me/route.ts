@@ -20,12 +20,16 @@ export async function GET(req: NextRequest) {
   const token = req.cookies.get('access_token')?.value || req.cookies.get('token')?.value;
 
   if (!token) {
-    return NextResponse.json({ authenticated: false, user: null }, { status: 200 });
+    const res = NextResponse.json({ authenticated: false, user: null }, { status: 200 });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   }
 
   if (!API_BASE) {
-    // No upstream available; still indicate authenticated due to token presence
-    return NextResponse.json({ authenticated: true, user: null }, { status: 200 });
+    // No upstream available; do not assert authentication
+    const res = NextResponse.json({ authenticated: false, user: null }, { status: 200 });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   }
 
   // Try preferred endpoint /api/auth/me then fallback to /api/user
@@ -41,7 +45,9 @@ export async function GET(req: NextRequest) {
       });
 
       if (upstream.status === 401 || upstream.status === 403) {
-        return NextResponse.json({ authenticated: false, user: null }, { status: 200 });
+        const res = NextResponse.json({ authenticated: false, user: null }, { status: 200 });
+        res.headers.set('Cache-Control', 'no-store');
+        return res;
       }
 
       if (upstream.ok) {
@@ -52,13 +58,17 @@ export async function GET(req: NextRequest) {
           name: (data as any)?.name ?? null,
           email: (data as any)?.email ?? null,
         } : null;
-        return NextResponse.json({ authenticated: true, user: normalized }, { status: 200 });
+        const res = NextResponse.json({ authenticated: true, user: normalized }, { status: 200 });
+        res.headers.set('Cache-Control', 'no-store');
+        return res;
       }
     } catch {
       // try next candidate
     }
   }
 
-  // Fallback if all attempts failed but token exists
-  return NextResponse.json({ authenticated: true, user: null }, { status: 200 });
+  // Fallback if all attempts failed
+  const res = NextResponse.json({ authenticated: false, user: null }, { status: 200 });
+  res.headers.set('Cache-Control', 'no-store');
+  return res;
 }

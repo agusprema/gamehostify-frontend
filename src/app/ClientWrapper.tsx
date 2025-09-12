@@ -2,13 +2,13 @@ import Header from '@/components/layout/Header';
 import RouteLoader from '@/components/routing/RouteLoader';
 import RouteResetter from '@/components/routing/RouteResetter';
 import Footer from '@/components/layout/Footer';
-import CartClient, { openCart } from '@/components/sections/Cart/CartClient';
+import CartClient from '@/components/sections/Cart/CartClient';
 
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   // Komponen ini sekarang server-side, SEO optimal
   return (
     <>
-      <Header onCartClick={openCart} />
+      <Header />
       <CartClient />
       <RouteLoader />
       <RouteResetter />

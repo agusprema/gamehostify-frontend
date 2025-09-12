@@ -235,4 +235,4 @@ const ChannelExtraFields: React.FC<ChannelExtraFieldsProps> = ({
   );
 };
 
-export default ChannelExtraFields;
+export default React.memo(ChannelExtraFields);

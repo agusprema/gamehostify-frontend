@@ -1,5 +1,7 @@
 "use client";
 import React, { useEffect, useId, useState } from "react";
+import { useForm } from "react-hook-form";
+import { setFieldErrors } from "@/utils/rhf/setFieldErrors";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { Hiburan, HiburanPackage } from "./types";
@@ -25,10 +27,28 @@ export function HiburanModal({
   const [selectedPkg, setSelectedPkg] = useState<HiburanPackage | null>(null);
   const inputId = useId();
 
+  const { setError, setValue, formState: { errors } } = useForm<{ target: string }>({
+    defaultValues: { target: "" },
+    mode: "onBlur",
+    reValidateMode: "onChange",
+  });
+
   useEffect(() => {
     setTarget("");
     setSelectedPkg(null);
   }, [hiburan]);
+
+  // Sync local state into RHF and apply server errors
+  useEffect(() => {
+    setValue("target", target, { shouldDirty: true, shouldValidate: true });
+  }, [target, setValue]);
+
+  useEffect(() => {
+    if (formErrors) {
+      setFieldErrors(setError as any, formErrors as any, ["target"] as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formErrors]);
 
   const handleConfirm = async () => {
     if (!selectedPkg || !target.trim()) return;
@@ -37,7 +57,7 @@ export function HiburanModal({
 
   if (!isOpen || !hiburan) return null;
 
-  const error = formErrors?.target?.[0];
+  const error = (errors.target?.message as string | undefined) ?? formErrors?.target?.[0];
 
   return (
     <AnimatePresence>

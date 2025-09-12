@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Group, LoaderCircle, X } from "lucide-react";
 import { CartItem, PaymentMethodsMap } from "@/components/checkout/types/checkout";
 import Image from "next/image";
@@ -65,14 +65,18 @@ const OrderSummary: React.FC<Props> = React.memo(({
   const [couponCode, setCouponCode] = useState(code);
 
   // Normal content jika data sudah ready
-  const selectedChannelObj = Object.values(paymentMethods)
-    .flat()
-    .find((c) => c.code === selectedChannel);
+  const selectedChannelObj = useMemo(() => {
+    const all = Object.values(paymentMethods).flat();
+    return all.find((c) => c.code === selectedChannel);
+  }, [paymentMethods, selectedChannel]);
 
-  const feeValue = Number(selectedChannelObj?.fee_value || 0);
-  const feeType = selectedChannelObj?.fee_type || "fixed";
-  const fee = feeType === "percentage" ? (total * feeValue) / 100 : feeValue;
-  const grandTotal = total + fee;
+  const { fee, feeType, feeValue, grandTotal } = useMemo(() => {
+    const feeValue = Number(selectedChannelObj?.fee_value || 0);
+    const feeType = selectedChannelObj?.fee_type || "fixed";
+    const fee = feeType === "percentage" ? (total * feeValue) / 100 : feeValue;
+    const grandTotal = total + fee;
+    return { fee, feeType, feeValue, grandTotal };
+  }, [selectedChannelObj, total]);
 
   const handleSubmit = useCallback(() => {
     if (!couponCode || !couponCode.trim()) return;
@@ -81,7 +85,7 @@ const OrderSummary: React.FC<Props> = React.memo(({
 
   const handleRemove = useCallback(() => {
     onSubmit('', true);
-  }, [couponCode, onSubmit]);
+  }, [onSubmit]);
 
 
 

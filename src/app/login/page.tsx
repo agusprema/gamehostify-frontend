@@ -1,84 +1,40 @@
-"use client";
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { login } from '@/lib/auth';
+import PageTransition from "@/components/animations/PageTransition";
+import Wrapper from "@/components/ui/Wrapper";
+import Link from '@/components/ui/Link';
+import LoginForm from '@/components/auth/LoginForm';
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      await login({ email, password });
-      // Token ditaruh di cookie oleh BFF; langsung redirect
-      router.push('/');
-    } catch (err: any) {
-      setError(err?.message || 'Login gagal');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
-    <div className="flex items-center justify-center min-h-[70vh] px-4">
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-xl">
-        <h1 className="text-2xl font-semibold text-white mb-1">Masuk</h1>
-        <p className="text-zinc-400 text-sm mb-6">Silakan masuk untuk melanjutkan.</p>
+    <PageTransition>
+      <Wrapper className="flex items-center justify-center">
+        <div className="max-w-md w-[480px] bg-gray-100 dark:bg-gray-900/60 backdrop-blur-md border border-gray-300 dark:border-gray-700 rounded-2xl p-8 shadow-2xl">
+          <h1 className="text-3xl font-bold text-white mb-2 text-center">Masuk</h1>
+          <p className="text-accent-400 text-sm mb-6 text-center">Selamat datang di {process.env.NEXT_PUBLIC_APP_NAME}</p>
 
-        {error && (
-          <div className="mb-4 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded p-3">
-            {error}
-          </div>
-        )}
+          <LoginForm />
 
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm text-zinc-300 mb-1">Email</label>
-            <input
-              type="email"
-              autoComplete="email"
-              required
-              className="w-full appearance-none rounded-lg bg-zinc-800 border border-zinc-700 px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-zinc-300 mb-1">Password</label>
-            <input
-              type="password"
-              autoComplete="current-password"
-              required
-              className="w-full appearance-none rounded-lg bg-zinc-800 border border-zinc-700 px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+          <div className="flex items-center my-6">
+            <div className="flex-grow h-px bg-primary-800"></div>
+            <span className="px-3 text-xs text-primary-500">atau</span>
+            <div className="flex-grow h-px bg-primary-800"></div>
           </div>
 
           <button
-            type="submit"
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 px-4 py-2.5 text-white font-medium transition-colors"
+            type="button"
+            className="cursor-pointer w-full flex items-center justify-center gap-2 rounded-xl bg-primary-800 hover:bg-primary-700 px-4 py-3 text-white text-sm font-medium transition"
           >
-            {loading ? 'Memproses…' : 'Masuk'}
+            🔑 Masuk dengan Google
           </button>
-        </form>
 
-        <p className="text-center text-sm text-zinc-400 mt-4">
-          Belum punya akun?{' '}
-          <a href="/register" className="text-indigo-400 hover:text-indigo-300">Daftar</a>
-        </p>
-      </div>
-    </div>
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+            Belum punya akun?{' '}
+            <Link href="/register" className="text-accent-400 hover:text-accent-300 font-medium">
+              Daftar
+            </Link>
+          </p>
+        </div>
+      </Wrapper>
+    </PageTransition>
   );
 }
 

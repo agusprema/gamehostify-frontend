@@ -5,6 +5,7 @@ import { Clock, AlertCircle } from 'lucide-react';
 import PaymentInstructions from '@/components/checkout/payment/PaymentInstructions';
 import { CheckoutTransaction, TransactionAction } from "@/components/checkout/types/checkout";
 import { apiFetch } from '@/lib/apiFetch';
+import { joinUrl } from '@/lib/url';
 
 interface Props {
   transaction: CheckoutTransaction;
@@ -50,7 +51,7 @@ const WaitingForPayment: React.FC<Props> = ({ transaction, onPaid }) => {
   // Polling every 5s to check if paid
   useEffect(() => {
     const interval = setInterval(async () => {
-      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/payment/${transaction.reference_id}/check`, {
+      const res = await apiFetch(joinUrl(process.env.BACKEND_API_BASE_URL, `api/v1/payment/${transaction.reference_id}/check`), {
         method: 'GET',
         headers: {
           Accept: 'application/json',

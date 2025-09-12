@@ -1,5 +1,7 @@
 "use client";
 import React, { useState, useMemo, useEffect, useId } from "react";
+import { useForm } from "react-hook-form";
+import { setFieldErrors } from "@/utils/rhf/setFieldErrors";
 import { motion, AnimatePresence } from "framer-motion";
 import { Operator, OperatorPackage } from "../types";
 import PulsaModalHeader from "./PulsaModalHeader";
@@ -30,6 +32,13 @@ export function PulsaModal({
   const [selectedPkg, setSelectedPkg] = useState<OperatorPackage | null>(null);
   const inputId = useId();
 
+  // RHF instance to enable setFieldErrors for server errors
+  const { setError, setValue, formState: { errors } } = useForm<{ target: string }>({
+    defaultValues: { target: "" },
+    mode: "onBlur",
+    reValidateMode: "onChange",
+  });
+
   const pulsaPackages = useMemo(
     () => operator?.packages.filter((p) => p.type_package === "pulsa") ?? [],
     [operator]
@@ -49,6 +58,19 @@ export function PulsaModal({
   useEffect(() => {
     if (selectedPkg) setTab(selectedPkg.type_package === "data" ? "data" : "pulsa");
   }, [selectedPkg]);
+
+  // Sync local phone to RHF for validation state
+  useEffect(() => {
+    setValue("target", phone, { shouldDirty: true, shouldValidate: true });
+  }, [phone, setValue]);
+
+  // Apply server-side field errors via RHF
+  useEffect(() => {
+    if (formErrors) {
+      setFieldErrors(setError as any, formErrors as any, ["target"] as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formErrors]);
 
   const handleConfirm = async () => {
     if (!selectedPkg || !phone.trim()) return;
@@ -102,7 +124,7 @@ export function PulsaModal({
               phone={phone}
               setPhone={setPhone}
               inputId={inputId}
-              formError={formErrors}
+              formError={errors.target?.message ? { target: [String(errors.target.message)] } : formErrors}
               operator={operator}
             />
             <PulsaModalTabs tab={tab} setTab={setTab} />

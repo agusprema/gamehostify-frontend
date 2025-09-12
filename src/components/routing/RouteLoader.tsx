@@ -16,7 +16,7 @@ export default function RouteLoader() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm pointer-events-none"
         >
           {/* Ikon spinner */}
           <Loader2 className="h-10 w-10 text-primary-400 animate-spin" />

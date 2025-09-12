@@ -6,7 +6,7 @@ interface Props {
   step: CheckoutStep;
 }
 
-export default function StepIndicator({ step }: Props) {
+function StepIndicator({ step }: Props) {
   const active = (s: CheckoutStep | string) => {
     if (step === "loading") return false;
     return (
@@ -80,3 +80,5 @@ export default function StepIndicator({ step }: Props) {
     </div>
   );
 }
+
+export default React.memo(StepIndicator);

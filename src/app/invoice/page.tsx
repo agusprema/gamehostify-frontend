@@ -9,6 +9,7 @@ import InvoiceSkeleton from "@/components/invoice/InvoiceSkeleton";
 
 
 import type { Metadata } from "next";
+import { joinUrl } from "@/lib/url";
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     siteName: app_name,
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_OG_IMAGE}og-image-invoice.jpg`,
+        url: joinUrl(process.env.NEXT_PUBLIC_OG_IMAGE, 'og-image-invoice.jpg'),
         width: 1200,
         height: 630,
         alt: `${app_name} Invoice Cek Status`,
@@ -65,7 +66,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `Cek Invoice Pembayaran & Pengiriman | ${app_name}`,
     description: `Cek status pembayaran, pengiriman, dan detail invoice transaksi Anda di ${app_name}. Masukkan Reference ID untuk melihat status pesanan dan riwayat transaksi Anda.`,
-    images: [`${process.env.NEXT_PUBLIC_OG_IMAGE}og-image-invoice.jpg`],
+    images: [joinUrl(process.env.NEXT_PUBLIC_OG_IMAGE, 'og-image-invoice.jpg')],
     site: process.env.NEXT_PUBLIC_TWITER_TAG,
   },
 };

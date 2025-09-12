@@ -4,7 +4,15 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { regenerateCartToken } from "@/lib/cart/getCartToken";
 import { useCart } from "@/contexts/CartContext";
 
-type User = { id: number | null; name: string | null; email: string | null } | null;
+type User = { 
+  id: number | null; 
+  name: string | null; 
+  email: string | null;
+  avatar: string | null;
+  phone: string | null;
+  birth_date: Date | null;
+  gender: string | null;
+} | null;
 
 export function useAuthStatus() {
   const [loading, setLoading] = useState(true);
@@ -55,32 +63,26 @@ export function useAuthStatus() {
       regenerateCartToken();
       fetchCart();
     }, 150);
-  }, [refresh]);
+  }, [refresh, fetchCart]);
 
   // listen events
   useEffect(() => {
     function onAuthChanged() {
       refreshAndRegenerate();
     }
-    // function onVisibility() {
-    //   if (document.visibilityState === "visible") {
-    //     refreshAndRegenerate();
-    //   }
-    // }
 
     if (typeof window !== "undefined") {
       window.addEventListener("auth:changed", onAuthChanged);
-      // Pakai satu saja untuk menghindari duplikasi:
-      // document.addEventListener("visibilitychange", onVisibility);
     }
 
-    // return () => {
-    //   if (typeof window !== "undefined") {
-    //     window.removeEventListener("auth:changed", onAuthChanged);
-    //     document.removeEventListener("visibilitychange", onVisibility);
-    //   }
-    //   if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    // };
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("auth:changed", onAuthChanged);
+      }
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
   }, [refreshAndRegenerate]);
 
   return { loading, authenticated, user, refresh };

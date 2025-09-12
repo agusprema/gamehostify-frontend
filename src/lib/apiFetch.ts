@@ -65,6 +65,8 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   // Merge headers; ensure client never leaks X-BFF-Auth
   const headers = new Headers(init.headers as HeadersInit | undefined);
   if (headers.has('X-BFF-Auth')) headers.delete('X-BFF-Auth');
+  // Never forward client Authorization to BFF; BFF derives from HttpOnly cookie
+  if (headers.has('Authorization')) headers.delete('Authorization');
 
   return fetch(finalUrl, { ...init, headers });
 }
