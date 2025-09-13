@@ -27,15 +27,8 @@ export default function CartClient() {
     };
   }, []);
 
-  if (!mounted) {
-    // Loader fullscreen agar user melihat loading sebelum interaksi
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center w-screen h-screen bg-white dark:bg-black text-gray-900 dark:text-white transition-colors duration-300">
-        <Loader2 className="h-10 w-10 text-primary-400 animate-spin mb-3" />
-        <span className="animate-pulse text-lg font-medium">Loading...</span>
-      </div>
-    );
-  }
+  // Avoid rendering markup during SSR hydration to prevent mismatch
+  if (!mounted) return null;
 
   return <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />;
 }

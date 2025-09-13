@@ -11,6 +11,7 @@ import React, {
 
 import { getCartToken } from '@/lib/cart/getCartToken';
 import { apiFetch } from '@/lib/apiFetch';
+import { joinUrl } from '@/lib/url';
 import {
   CartData,
   CartItem,
@@ -104,7 +105,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         'Content-Type': 'application/json',
       };
       if (token) headers['X-Cart-Token'] = token;
-      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart`, {
+      const res = await apiFetch(joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart'), {
         headers,
         credentials: 'include',
       });
@@ -146,7 +147,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         'Content-Type': 'application/json',
       };
       if (token) headers['X-Cart-Token'] = token;
-      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/quantity`, {
+      const res = await apiFetch(joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/quantity'), {
         headers,
         credentials: 'include',
       });
@@ -171,7 +172,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         'Content-Type': 'application/json',
       };
       if (token) headers['X-Cart-Token'] = token;
-      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/code`, {
+      const res = await apiFetch(joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/code'), {
         method: 'POST',
         headers,
         credentials: 'include',
@@ -210,7 +211,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         'Content-Type': 'application/json',
       };
       if (token) headers['X-Cart-Token'] = token;
-      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/update`, {
+      const res = await apiFetch(joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/update'), {
         method: 'POST',
         headers,
         credentials: 'include',

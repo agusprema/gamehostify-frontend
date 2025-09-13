@@ -2,6 +2,7 @@ import HiburanPage from '@/components/hiburan/HiburanPage';
 import PageTransition from '@/components/animations/PageTransition';
 import { Metadata } from 'next';
 import { fetchJson } from '@/lib/fetchJson';
+import { joinUrl } from '@/lib/url';
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
     siteName: app_name,
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_OG_IMAGE}og-image-hiburan.jpg`,
+        url: joinUrl(process.env.NEXT_PUBLIC_OG_IMAGE, 'og-image-hiburan.jpg'),
         width: 1200,
         height: 630,
         alt: `${app_name} Hiburan`,
@@ -49,7 +50,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `Layanan Hiburan & Streaming | ${app_name}`,
     description: `Beli paket streaming favorit Anda secara instan di ${app_name}.`,
-    images: [`${process.env.NEXT_PUBLIC_OG_IMAGE}og-image-hiburan.jpg`],
+    images: [joinUrl(process.env.NEXT_PUBLIC_OG_IMAGE, 'og-image-hiburan.jpg')],
     site: process.env.NEXT_PUBLIC_TWITER_TAG,
   },
 };
@@ -62,7 +63,7 @@ export default async function Hiburan() {
   const API = process.env.BACKEND_API_BASE_URL ?? '';
 
   const [json] = await Promise.all([
-    fetchJson(API + 'api/v1/entertainments?per_page=24', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson(joinUrl(API, 'api/v1/entertainments?per_page=24'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
   ]);
 
   const data = json?.data ?? {};

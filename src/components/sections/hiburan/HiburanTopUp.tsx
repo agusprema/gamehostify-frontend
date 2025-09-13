@@ -8,6 +8,7 @@ import { HiburanGrid } from "./HiburanGrid";
 import { HiburanModal } from "./HiburanModal";
 import Link from "@/components/ui/Link";
 import { apiFetch } from "@/lib/apiFetch";
+import { joinUrl } from "@/lib/url";
 
 export interface HiburanTopUpProps {
   hiburans: Hiburan[];
@@ -30,7 +31,7 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
         Accept: "application/json",
       };
       if (token) headers["X-Cart-Token"] = token;
-      const res = await apiFetch(`${process.env.BACKEND_API_BASE_URL}api/v1/cart/add`, {
+      const res = await apiFetch(joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/add'), {
         method: "POST",
         credentials: "include",
         headers,

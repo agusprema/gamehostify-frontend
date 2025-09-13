@@ -50,7 +50,24 @@ export async function POST(req: NextRequest) {
     }
   })();
 
-  const res = NextResponse.json(normalized, { status: upstreamResp.status });
+  // Remove any token from response body; cookie will carry it
+  const sanitized = (() => {
+    try {
+      const c: any = normalized && typeof normalized === 'object' ? JSON.parse(JSON.stringify(normalized)) : {};
+      if (c?.data) {
+        delete c.data.token;
+        delete c.data.access_token;
+      }
+      delete c.token;
+      delete c.access_token;
+      return c ?? {};
+    } catch {
+      return {};
+    }
+  })();
+
+  const res = NextResponse.json(sanitized, { status: upstreamResp.status });
+  res.headers.set('Cache-Control', 'no-store');
 
   try {
     const data = (payload as any)?.data;
@@ -59,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     res.cookies.set('token', token, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: 'strict',
       secure: prod,
       path: '/',
       maxAge: 60 * 60 * 24 * 7,

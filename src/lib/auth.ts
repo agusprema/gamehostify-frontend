@@ -1,25 +1,29 @@
 import { apiFetch } from '@/lib/apiFetch';
 import { regenerateCartToken, resetCartTokenCache } from '@/lib/cart/getCartToken';
+import { apiRequest } from '@/lib/http';
 
 type LoginPayload = { email: string; password: string };
-type RegisterPayload = { name: string; email: string; password: string };
+
+type RegisterPayload = { 
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  phone: string;
+  birth_date: string;
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
+};
 
 export async function login(payload: LoginPayload) {
-  const res = await apiFetch('/api/auth/login', {
+  const json = await apiRequest<any>('/api/auth/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
     body: JSON.stringify(payload),
-    // Important: allow Next to handle and set cookies via BFF
     credentials: 'include',
   });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    const msg = (json?.message as string) || 'Login gagal';
-    throw new Error(msg);
-  }
   // Refresh cart token after successful login
   try {
     await regenerateCartToken();
@@ -34,7 +38,7 @@ export async function login(payload: LoginPayload) {
 }
 
 export async function register(payload: RegisterPayload) {
-  const res = await apiFetch('/api/auth/register', {
+  return apiRequest<any>('/api/auth/register', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,12 +47,6 @@ export async function register(payload: RegisterPayload) {
     body: JSON.stringify(payload),
     credentials: 'include',
   });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    const msg = (json?.message as string) || 'Registrasi gagal';
-    throw new Error(msg);
-  }
-  return json;
 }
 
 export async function logout() {
@@ -74,12 +72,9 @@ export async function logout() {
 }
 
 export async function me() {
-  const res = await apiFetch('/api/auth/me', {
+  return apiRequest<any>('/api/auth/me', {
     method: 'GET',
     headers: { 'Accept': 'application/json' },
     credentials: 'include',
   });
-  const json = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(json?.message || 'Gagal mengambil profil');
-  return json; // { authenticated: boolean, user: {id,name,email}|null }
 }

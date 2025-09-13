@@ -24,7 +24,7 @@ export default function Link({
 }: LinkProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { showLoader } = useLoader();
+  const { showLoader, hideLoader } = useLoader();
   const loaderTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleClick = useCallback(
@@ -61,8 +61,10 @@ export default function Link({
       // Router push dengan callback onNavigateEnd
       router.push(href);
       if (onNavigateEnd) onNavigateEnd();
+      // Fallback: auto-hide loader jika routing events tidak tertangkap
+      setTimeout(() => hideLoader(), 1000);
     },
-    [pathname, href, rest, onNavigateStart, onNavigateEnd, showLoader, router]
+    [pathname, href, rest, onNavigateStart, onNavigateEnd, showLoader, hideLoader, router]
   );
 
   return (

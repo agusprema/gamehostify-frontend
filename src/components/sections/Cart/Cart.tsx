@@ -14,6 +14,7 @@ import dynamic from "next/dynamic";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { apiFetch } from "@/lib/apiFetch";
+import { joinUrl } from "@/lib/url";
 
 // --- Dynamic imports (code splitting) ---
 const CartHeader = dynamic(() => import("./CartHeader"), { ssr: false });
@@ -115,7 +116,7 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
           };
           if (token) headers["X-Cart-Token"] = token;
           const res = await apiFetch(
-            `${process.env.BACKEND_API_BASE_URL}api/v1/cart/remove`,
+            joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/remove'),
             {
               method: "DELETE",
               headers,

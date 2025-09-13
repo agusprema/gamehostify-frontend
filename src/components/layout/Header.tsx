@@ -19,14 +19,11 @@ import ThemeSwitcher from '../ui/ThemeSwitcher';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-
-interface HeaderProps {
-  onCartClick: () => void;
-}
+import { openCart } from '@/components/sections/Cart/CartClient';
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME || 'GameVault';
 
-export default function Header({ onCartClick }: HeaderProps) {
+export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProdukOpen, setIsProdukOpen] = useState(false);
   const produkDropdownRef = useRef<HTMLDivElement>(null);
@@ -235,7 +232,7 @@ export default function Header({ onCartClick }: HeaderProps) {
 
             {/* Cart */}
             <button
-              onClick={onCartClick}
+              onClick={openCart}
               className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-primary-500 transition cursor-pointer"
             >
               <ShoppingCart className="h-6 w-6" />

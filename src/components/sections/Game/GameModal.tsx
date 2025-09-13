@@ -3,6 +3,8 @@
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, User, Zap, Shield, X } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { setFieldErrors } from "@/utils/rhf/setFieldErrors";
 import FormError from "@/components/ui/FormError";
 import Image from "next/image";
 
@@ -54,6 +56,23 @@ const GameModal: React.FC<GameModalProps> = ({
   onTopUp,
   isProcessing,
 }) => {
+  const { setError, setValue, formState: { errors } } = useForm<{ target: string }>({
+    defaultValues: { target: "" },
+    mode: "onBlur",
+    reValidateMode: "onChange",
+  });
+
+  // Sync parent state into RHF and apply server errors
+  React.useEffect(() => {
+    setValue("target", gameAccount, { shouldDirty: true, shouldValidate: true });
+  }, [gameAccount, setValue]);
+
+  React.useEffect(() => {
+    if (formError) {
+      setFieldErrors(setError as any, formError as any, ["target"] as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formError]);
   React.useEffect(() => {
     if (game) {
       document.body.style.overflow = "hidden";
@@ -210,7 +229,7 @@ const GameModal: React.FC<GameModalProps> = ({
                       dark:border-gray-600 dark:bg-gray-700 dark:text-white
                     "
                   />
-                  <FormError messages={formError.target} />
+                  <FormError messages={(errors.target?.message ? [String(errors.target.message)] : formError.target) ?? []} />
 
                   {selectedPackage && (
                     <div className="border-t border-gray-300 dark:border-gray-600 pt-4 mt-4 space-y-2 text-sm">
