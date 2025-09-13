@@ -1,21 +1,21 @@
 import Header from '@/components/layout/Header';
-import RouteLoader from '@/components/routing/RouteLoader';
-import RouteResetter from '@/components/routing/RouteResetter';
-import Footer from '@/components/layout/Footer';
-import CartClient from '@/components/sections/Cart/CartClient';
+import DeferredCartClient from '@/components/sections/Cart/DeferredCartClient';
+import DeferredRouteLoader from '@/components/routing/DeferredRouteLoader';
+import DeferredRouteResetter from '@/components/routing/DeferredRouteResetter';
+import DeferredFooter from '@/components/layout/DeferredFooter';
 
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   // Komponen ini sekarang server-side, SEO optimal
   return (
     <>
       <Header />
-      <CartClient />
-      <RouteLoader />
-      <RouteResetter />
+      <DeferredCartClient />
+      <DeferredRouteLoader />
+      <DeferredRouteResetter />
       <main className="min-h-screen">{children}</main>
       
       {/* Footer tetap di server untuk render cepat */}
-      <Footer />
+      <DeferredFooter />
     </>
   );
 }

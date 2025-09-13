@@ -42,8 +42,16 @@ if (backendPrivateBase) {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ["error"] } : false,
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
   images: {
     remotePatterns,
+    formats: ["image/avif", "image/webp"],
   },
 };
 

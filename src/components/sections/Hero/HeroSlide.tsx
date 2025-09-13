@@ -133,6 +133,7 @@ const HeroSlide: React.FC<HeroSlideProps> = ({ slide }) => {
           className="w-full h-full object-cover"
           width={800}
           height={500}
+          sizes="(max-width: 768px) 100vw, 50vw"
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-l from-white/30 dark:from-black/30 to-white/60 dark:to-black/70" />

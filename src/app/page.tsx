@@ -3,7 +3,6 @@ import dynamic from "next/dynamic";
 import { joinUrl } from "@/lib/url";
 import Hero from "@/components/sections/Hero/Hero";
 import ProductGrid from "@/components/sections/Products/ProductGrid";
-import PageTransition from "@/components/animations/PageTransition";
 import Wrapper from "@/components/ui/Wrapper";
 import { normalizeSlidesPayload } from "@/lib/slide/normalize";
 import { fetchJson } from "@/lib/fetchJson";
@@ -137,31 +136,29 @@ export default async function HomePage() {
   const entertainments = jsonEntertaiments?.data?.entertainment ?? [];
 
   return (
-    <PageTransition>
-      <Wrapper>
-        <Hero slider={slider} />
-        <ProductGrid
-          activeCategoryDefault="topup"
-          games={games}
-          operators={operators}
-          entertainments={entertainments}
-          nextCursor={nextCursor}
-          hasMore={hasMore}
+    <Wrapper>
+      <Hero slider={slider} />
+      <ProductGrid
+        activeCategoryDefault="topup"
+        games={games}
+        operators={operators}
+        entertainments={entertainments}
+        nextCursor={nextCursor}
+        hasMore={hasMore}
+      />
+      {/* Testimonials */}
+      <div className="relative py-16">
+        <Testimonials testimonials={testimonials} />
+      </div>
+      {/* FAQ */}
+      <div className="relative py-16">
+        <Faq
+          items={FAQ_ITEMS}
+          variant="accordion"
+          title="Frequently Asked Questions"
+          subtitle="Everything you need to know about game top-ups"
         />
-        {/* Testimonials */}
-        <div className="relative py-16">
-          <Testimonials testimonials={testimonials} />
-        </div>
-        {/* FAQ */}
-        <div className="relative py-16">
-          <Faq
-            items={FAQ_ITEMS}
-            variant="accordion"
-            title="Frequently Asked Questions"
-            subtitle="Everything you need to know about game top-ups"
-          />
-        </div>
-      </Wrapper>
-    </PageTransition>
+      </div>
+    </Wrapper>
   );
 }

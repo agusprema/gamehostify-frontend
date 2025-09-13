@@ -124,10 +124,9 @@ async function handle(req: NextRequest, ctx: any) {
     });
   } catch (err: any) {
     clearTimeout(to);
-    return NextResponse.json(
-      { status: "error", message: err?.message || "Upstream fetch failed" },
-      { status: 502 }
-    );
+    const body: any = { status: "error", message: err?.message || "Upstream fetch failed" };
+    if (process.env.NODE_ENV !== 'production') body.debugTarget = targetUrl;
+    return NextResponse.json(body, { status: 502 });
   }
   clearTimeout(to);
 
