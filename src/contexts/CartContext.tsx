@@ -201,7 +201,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return false;
     }
     return false;
-  }, [fetchCart]);
+  }, []);
 
     const updateCart = useCallback(async (target: string, id:string): Promise<boolean> => {
     try {
@@ -240,7 +240,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return false;
     }
     return false;
-  }, [fetchCart]);
+  }, []);
 
   useEffect(() => {
     (async () => {

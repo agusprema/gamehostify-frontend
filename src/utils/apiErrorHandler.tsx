@@ -8,13 +8,16 @@ export interface ApiError {
  * @param json Response JSON dari API
  * @returns Objek ApiError yang berisi pesan umum dan error field (jika ada).
  */
-export function handleApiErrors(json: any): ApiError {
-  if (!json) {
+export function handleApiErrors(json: unknown): ApiError {
+  if (!json || typeof json !== 'object') {
     return { message: "Terjadi kesalahan yang tidak diketahui." };
   }
 
-  const message = json.message || "Terjadi kesalahan.";
-  const fields = json.errors || undefined;
+  const obj = json as Record<string, unknown>;
+  const message = typeof obj.message === 'string' ? obj.message : "Terjadi kesalahan.";
+  const fields = (obj.errors && typeof obj.errors === 'object')
+    ? (obj.errors as Record<string, string[]>)
+    : undefined;
 
   return { message, fields };
 }

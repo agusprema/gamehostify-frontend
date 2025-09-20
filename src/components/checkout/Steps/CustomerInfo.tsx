@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import TextInput from "@/components/ui/inputs/TextInput";
 import dynamic from "next/dynamic";
 import { useForm, Controller } from "react-hook-form";
 import { setFieldErrors } from "@/utils/rhf/setFieldErrors";
@@ -72,7 +73,11 @@ export default function CustomerInfoForm({
   // Terapkan error dari server ke RHF setiap kali serverErrors berubah
   React.useEffect(() => {
     const known: Array<keyof CustomerFormValues> = ["name", "email", "phone"];
-    setFieldErrors(setError as any, serverErrors as any, known as any);
+    setFieldErrors<CustomerFormValues>(
+      setError,
+      serverErrors as Record<string, string | string[] | undefined>,
+      known
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverErrors]);
 
@@ -88,24 +93,17 @@ export default function CustomerInfoForm({
       >
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name *</label>
-          <input
+          <TextInput
+            label="Full Name *"
             type="text"
             autoComplete="name"
             placeholder="Enter your full name"
-            className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-black dark:text-white focus:outline-none focus:border-primary-500 ${
-              errors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"
-            }`}
+            errorMessages={errors.name?.message ? [String(errors.name.message)] : []}
             {...register("name", {
               required: "Full name is required",
               minLength: { value: 3, message: "Name must be at least 3 characters" },
             })}
           />
-          {errors.name?.message && (
-            <p className="mt-1 text-xs text-red-500">
-              {errors.name?.message}
-            </p>
-          )}
         </div>
 
         <div>
@@ -149,14 +147,12 @@ export default function CustomerInfoForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address *</label>
-        <input
+        <TextInput
+          label="Email Address *"
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
-          className={`w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-black dark:text-white focus:outline-none focus:border-primary-500 ${
-            errors.email ? "border-red-500" : "border-gray-300 dark:border-gray-600"
-          }`}
+          errorMessages={errors.email?.message ? [String(errors.email.message)] : []}
           {...register("email", {
             required: "Email is required",
             pattern: {
@@ -165,11 +161,6 @@ export default function CustomerInfoForm({
             },
           })}
         />
-        {errors.email?.message && (
-          <p className="mt-1 text-xs text-red-500">
-            {errors.email?.message}
-          </p>
-        )}
       </div>
 
       <button

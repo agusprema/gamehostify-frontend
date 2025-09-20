@@ -15,10 +15,10 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   let urlStr: string;
   if (typeof input === 'string') {
     urlStr = input;
-  } else if (typeof (input as any)?.url === 'string') {
-    urlStr = (input as any).url as string;
   } else if (input instanceof URL) {
     urlStr = input.toString();
+  } else if (typeof Request !== 'undefined' && input instanceof Request) {
+    urlStr = input.url;
   } else {
     urlStr = String(input);
   }

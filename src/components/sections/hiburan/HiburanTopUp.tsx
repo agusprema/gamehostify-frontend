@@ -1,11 +1,12 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Hiburan, HiburanPackage } from "./types";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { handleApiErrors } from "@/utils/apiErrorHandler";
 import { HiburanGrid } from "./HiburanGrid";
-import { HiburanModal } from "./HiburanModal";
+import ProductModal from "@/components/ui/Modal/ProductModal";
+import { CommonPackage } from "@/components/ui/Modal/types";
 import Link from "@/components/ui/Link";
 import { apiFetch } from "@/lib/apiFetch";
 import { joinUrl } from "@/lib/url";
@@ -20,6 +21,14 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
   const [selected, setSelected] = useState<Hiburan | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const [target, setTarget] = useState("");
+  const [selectedPkg, setSelectedPkg] = useState<HiburanPackage | null>(null);
+
+  useEffect(() => {
+    // reset when opening a new item or closing
+    setTarget("");
+    setSelectedPkg(null);
+  }, [selected]);
 
   const handleTopUp = async (pkg: HiburanPackage, target: string) => {
     if (!pkg || !target.trim()) return;
@@ -103,13 +112,28 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
         </div>
       )}
 
-      <HiburanModal
-        hiburan={selected}
-        isOpen={!!selected}
+      <ProductModal
+        open={!!selected}
         onClose={() => setSelected(null)}
-        onSubmit={handleTopUp}
+        product={{
+          logo: selected?.logo || "",
+          name: selected?.name || "",
+          description: selected?.description,
+          label: selected?.label || "Target",
+          placeholder: selected?.placeholder || "",
+        }}
+        target={target}
+        onTargetChange={setTarget}
+        errorMessages={formErrors.target ?? []}
+        groups={[{ key: "default", label: "Paket", packages: ((selected?.packages || []) as unknown as CommonPackage[]) }]}
+        activeGroupKey="default"
+        selectedPackage={selectedPkg as unknown as CommonPackage}
+        onSelectPackage={(p) => setSelectedPkg(p as HiburanPackage)}
         submitting={isProcessing}
-        formErrors={formErrors}
+        onConfirm={() => { if (selectedPkg && target.trim()) handleTopUp(selectedPkg, target); }}
+        confirmText="Add to Cart"
+        size="xl"
+        layout="wide"
       />
     </section>
   );

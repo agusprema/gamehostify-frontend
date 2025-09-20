@@ -15,6 +15,7 @@ function normalizeBase(url?: string | null) {
 
 const RAW_API_BASE = process.env.BACKEND_API_BASE_URL || process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
 const API_BASE = normalizeBase(RAW_API_BASE);
+const BFF_KEY = process.env.BFF_API_KEYS || '';
 
 export async function GET(req: NextRequest) {
   const token = req.cookies.get('access_token')?.value || req.cookies.get('token')?.value;
@@ -39,8 +40,9 @@ export async function GET(req: NextRequest) {
       const upstream = await fetch(url, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...(BFF_KEY ? { 'X-BFF-Auth': BFF_KEY } : {}),
         },
       });
 
@@ -51,13 +53,21 @@ export async function GET(req: NextRequest) {
       }
 
       if (upstream.ok) {
-        const json = await upstream.json().catch(() => null);
-        const data = (json as any)?.data ?? (json as any)?.user ?? json;
-        const normalized = data && typeof data === 'object' ? {
-          id: (data as any)?.id ?? null,
-          name: (data as any)?.name ?? null,
-          email: (data as any)?.email ?? null,
-        } : null;
+        const json = (await upstream.json().catch(() => null)) as unknown;
+        const data: unknown = (json && typeof json === 'object')
+          ? ((json as Record<string, unknown>).data ?? (json as Record<string, unknown>).user ?? json)
+          : json;
+        const normalized = (data && typeof data === 'object') ? (() => {
+          const obj = data as Record<string, unknown>;
+          const id = ("id" in obj ? (obj.id as string | number | null | undefined) : null) ?? null;
+          const name = ("name" in obj ? (obj.name as string | null | undefined) : null) ?? null;
+          const email = ("email" in obj ? (obj.email as string | null | undefined) : null) ?? null;
+          const avatar = ("avatar" in obj ? (obj.avatar as string | null | undefined) : null) ?? null;
+          const birth_date = ("birth_date" in obj ? (obj.birth_date as string | null | undefined) : null) ?? null;
+          const gender = ("gender" in obj ? (obj.gender as string | null | undefined) : null) ?? null;
+          const phone = ("phone" in obj ? (obj.phone as string | null | undefined) : null) ?? null;
+          return { id, name, email, avatar, birth_date, gender, phone };
+        })() : null;
         const res = NextResponse.json({ authenticated: true, user: normalized }, { status: 200 });
         res.headers.set('Cache-Control', 'no-store');
         return res;

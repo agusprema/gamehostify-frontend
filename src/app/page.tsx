@@ -7,6 +7,12 @@ import Wrapper from "@/components/ui/Wrapper";
 import { normalizeSlidesPayload } from "@/lib/slide/normalize";
 import { fetchJson } from "@/lib/fetchJson";
 import type { Slide } from "@/components/sections/Hero/slide";
+import type {
+  ApiResponse,
+  GamesData,
+  OperatorsData,
+  EntertainmentsData,
+} from "@/lib/apiTypes";
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
@@ -115,23 +121,22 @@ export const viewport = { themeColor: "#6b21a8" };
 
 
 export default async function HomePage() {
-  const API = process.env.BACKEND_API_BASE_URL ?? '';
-
-
   // Fetch paralel & error safe
   const [jsonGames, jsonOperators, jsonSlider, jsonEntertaiments] = await Promise.all([
-    fetchJson(joinUrl(API, 'api/v1/games?per_page=6'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
-    fetchJson(joinUrl(API, 'api/v1/operators?per_page=6'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
-    fetchJson(joinUrl(API, 'api/v1/contents/slider'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
-    fetchJson(joinUrl(API, 'api/v1/entertainments?per_page=6'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson<ApiResponse<GamesData>>('api/v1/games?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 0 } }),
+    fetchJson<ApiResponse<OperatorsData>>('api/v1/operators?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 0 } }),
+    fetchJson<ApiResponse<Slide[]>>('api/v1/contents/slider', { headers: { Accept: 'application/json' }, next: { revalidate: 0 } }),
+    fetchJson<ApiResponse<EntertainmentsData>>('api/v1/entertainments?per_page=6', { headers: { Accept: 'application/json' }, next: { revalidate: 0 } }),
   ]);
 
-  const dataGames = jsonGames?.data ?? {};
+  const dataGames = (jsonGames?.data) ?? {} as Partial<GamesData>;
   const games = dataGames.games ?? [];
   const nextCursor = dataGames.next_cursor ?? null;
   const hasMore = !!dataGames.has_more;
   const operators = jsonOperators?.data?.operators ?? [];
-  const slider: Slide[] = normalizeSlidesPayload(jsonSlider?.data ?? jsonSlider, API);
+
+  // Normalize slider payload to a consistent Slide[] regardless of API envelope
+  const slider = normalizeSlidesPayload(jsonSlider as unknown, process.env.NEXT_PUBLIC_BASE_URL);
 
   const entertainments = jsonEntertaiments?.data?.entertainment ?? [];
 

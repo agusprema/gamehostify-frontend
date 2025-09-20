@@ -21,7 +21,7 @@ interface PaymentMethodProps {
   xenditMessage?: string;
 }
 
-const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(({
+const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(({ 
   paymentMethods,
   selectedChannel,
   setSelectedMethod,
@@ -113,5 +113,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(({
     </section>
   );
 });
+
+PaymentMethod.displayName = "PaymentMethod";
 
 export default PaymentMethod;

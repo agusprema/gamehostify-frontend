@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import GameModal from "./GameModal";
+import ProductModal from "@/components/ui/Modal/ProductModal";
+import { CommonPackage } from "@/components/ui/Modal/types";
 import Link from "@/components/ui/Link";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
@@ -14,7 +15,7 @@ import { apiFetch } from "@/lib/apiFetch";
 import { joinUrl } from "@/lib/url";
 
 /* ---------- Debounce ---------- */
-function debounce<T extends (...args: any[]) => void>(fn: T, delay = 400) {
+function debounce<T extends (...args: unknown[]) => void>(fn: T, delay = 400) {
   let timeout: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
@@ -265,16 +266,29 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
       </div>
 
       {/* Modal */}
-      <GameModal
-        formError={formErrors}
-        game={selectedGame}
+      <ProductModal
+        open={!!selectedGame}
         onClose={() => setSelectedGame(null)}
-        onSelectPackage={setSelectedPackage}
-        selectedPackage={selectedPackage}
-        gameAccount={gameAccount}
-        setGameAccount={setGameAccount}
-        onTopUp={handleTopUp}
-        isProcessing={isProcessing}
+        layout="wide"
+        size="xl"
+        product={{
+          logo: selectedGame?.logo || "",
+          name: selectedGame?.name || "",
+          category: selectedGame?.category,
+          label: selectedGame?.label || "Akun",
+          placeholder: selectedGame?.placeholder || "",
+        }}
+        target={gameAccount}
+        onTargetChange={setGameAccount}
+        errorMessages={formErrors.target ?? []}
+        groups={[{ key: "default", label: "Paket", packages: ((selectedGame?.packages || []) as unknown as CommonPackage[]) }]}
+        activeGroupKey="default"
+        onGroupChange={() => {}}
+        selectedPackage={selectedPackage as unknown as CommonPackage}
+        onSelectPackage={(p) => setSelectedPackage(p as GamePackage)}
+        submitting={isProcessing}
+        onConfirm={handleTopUp}
+        confirmText="Add to Cart"
       />
     </section>
   );

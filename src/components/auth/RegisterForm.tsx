@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { setFieldErrors } from '@/utils/rhf/setFieldErrors';
 import { isValidPhoneNumber } from 'react-phone-number-input';
-import { Mail, LockKeyhole, User, Phone as PhoneIcon } from 'lucide-react';
+import { Mail, LockKeyhole, User } from 'lucide-react';
 import { register as registerApi } from '@/lib/auth';
 import "react-phone-number-input/style.css";
 
@@ -60,10 +60,11 @@ export default function RegisterForm() {
         gender: data.gender,
       });
       router.push('/login');
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Tangkap error validasi dari backend (terstandardisasi lewat apiRequest): { fields, message }
-      const fields = err?.fields ?? err?.errors ?? null;
-      const message = err?.message || 'Registrasi gagal';
+      const e = err as { fields?: Record<string, string | string[] | undefined>; errors?: Record<string, string | string[] | undefined>; message?: string };
+      const fields = e?.fields ?? e?.errors ?? null;
+      const message = e?.message || 'Registrasi gagal';
 
       const known: Array<keyof FormValues> = [
         'name',

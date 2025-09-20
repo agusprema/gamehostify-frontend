@@ -2,8 +2,11 @@ import PageTransition from "@/components/animations/PageTransition";
 import Wrapper from "@/components/ui/Wrapper";
 import Link from '@/components/ui/Link';
 import LoginForm from '@/components/auth/LoginForm';
+import { requireGuest } from '@/lib/server/auth-guard';
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  // Server-side guard to prevent logged-in users from accessing this page
+  await requireGuest();
   return (
     <PageTransition>
       <Wrapper className="flex items-center justify-center">
@@ -12,6 +15,12 @@ export default function LoginPage() {
           <p className="text-accent-400 text-sm mb-6 text-center">Selamat datang di {process.env.NEXT_PUBLIC_APP_NAME}</p>
 
           <LoginForm />
+
+          <div className="mt-3 text-right">
+            <Link href="/forgot-password" className="text-xs text-accent-400 hover:text-accent-300">
+              Lupa password?
+            </Link>
+          </div>
 
           <div className="flex items-center my-6">
             <div className="flex-grow h-px bg-primary-800"></div>
@@ -37,4 +46,3 @@ export default function LoginPage() {
     </PageTransition>
   );
 }
-

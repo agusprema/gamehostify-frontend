@@ -27,9 +27,10 @@ export default function LoginForm() {
     try {
       await login(values);
       router.push("/");
-    } catch (err: any) {
-      const fields = err?.fields ?? err?.errors ?? null;
-      const message = err?.message || "Login gagal";
+    } catch (err: unknown) {
+      const e = err as { fields?: Record<string, string | string[] | undefined>; errors?: Record<string, string | string[] | undefined>; message?: string };
+      const fields = e?.fields ?? e?.errors ?? null;
+      const message = e?.message || "Login gagal";
       const applied = setFieldErrors<LoginValues>(setError, fields, [
         "email",
         "password",

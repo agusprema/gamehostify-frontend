@@ -33,7 +33,7 @@ export default function CheckoutPage() {
   const [updateCartError, setUpdateCartError] = useState<string | null>(null);
   const [isLoadingCartUpdate, setIsLoadingCartUpdate] = useState<boolean>(false);
 
-  const { authenticated, user, loading, refresh } = useAuthStatus();
+  const { authenticated, user } = useAuthStatus();
 
   // Validasi status agar cocok dengan union type
   const rawStatus = searchParams.get("status");

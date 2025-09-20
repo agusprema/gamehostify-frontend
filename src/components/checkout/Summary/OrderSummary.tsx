@@ -30,6 +30,31 @@ const OrderSummary: React.FC<Props> = React.memo(({
   code = null,
   isLoadingCode = false
 }) => {
+  const [couponCode, setCouponCode] = useState(code);
+
+  // Normal content jika data sudah ready
+  const selectedChannelObj = useMemo(() => {
+    const all = Object.values(paymentMethods).flat();
+    return all.find((c) => c.code === selectedChannel);
+  }, [paymentMethods, selectedChannel]);
+
+  const { fee, feeType, feeValue, grandTotal } = useMemo(() => {
+    const feeValue = Number(selectedChannelObj?.fee_value || 0);
+    const feeType = selectedChannelObj?.fee_type || "fixed";
+    const fee = feeType === "percentage" ? (total * feeValue) / 100 : feeValue;
+    const grandTotal = total + fee;
+    return { fee, feeType, feeValue, grandTotal };
+  }, [selectedChannelObj, total]);
+
+  const handleSubmit = useCallback(() => {
+    if (!couponCode || !couponCode.trim()) return;
+    onSubmit(couponCode.trim(), false);
+  }, [couponCode, onSubmit]);
+
+  const handleRemove = useCallback(() => {
+    onSubmit('', true);
+  }, [onSubmit]);
+
   if (isLoading) {
     return (
       <aside className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24" aria-labelledby="order-summary-heading">
@@ -62,32 +87,6 @@ const OrderSummary: React.FC<Props> = React.memo(({
       </aside>
     );
   }
-  const [couponCode, setCouponCode] = useState(code);
-
-  // Normal content jika data sudah ready
-  const selectedChannelObj = useMemo(() => {
-    const all = Object.values(paymentMethods).flat();
-    return all.find((c) => c.code === selectedChannel);
-  }, [paymentMethods, selectedChannel]);
-
-  const { fee, feeType, feeValue, grandTotal } = useMemo(() => {
-    const feeValue = Number(selectedChannelObj?.fee_value || 0);
-    const feeType = selectedChannelObj?.fee_type || "fixed";
-    const fee = feeType === "percentage" ? (total * feeValue) / 100 : feeValue;
-    const grandTotal = total + fee;
-    return { fee, feeType, feeValue, grandTotal };
-  }, [selectedChannelObj, total]);
-
-  const handleSubmit = useCallback(() => {
-    if (!couponCode || !couponCode.trim()) return;
-    onSubmit(couponCode.trim(), false);
-  }, [couponCode, onSubmit]);
-
-  const handleRemove = useCallback(() => {
-    onSubmit('', true);
-  }, [onSubmit]);
-
-
 
   return (
     <aside className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24" aria-labelledby="order-summary-heading">
@@ -203,5 +202,7 @@ const OrderSummary: React.FC<Props> = React.memo(({
     </aside>
   );
 });
+
+OrderSummary.displayName = "OrderSummary";
 
 export default OrderSummary;

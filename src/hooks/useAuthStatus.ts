@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { regenerateCartToken } from "@/lib/cart/getCartToken";
 import { useCart } from "@/contexts/CartContext";
+import { me as fetchMe, AUTH_EVENT, type AuthAction } from "@/lib/auth";
 
 type User = { 
   id: number | null; 
@@ -28,19 +29,10 @@ export function useAuthStatus() {
     inFlight.current = true;
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      const json = await res.json().catch(() => null);
-
-      if (res.ok && json) {
-        setAuthenticated(Boolean(json.authenticated));
-        setUser(json.user ?? null);
-      } else {
-        setAuthenticated(false);
-        setUser(null);
-      }
+      type MeResponse = { authenticated?: boolean; user?: User } | null;
+      const json = (await fetchMe()) as MeResponse;
+      setAuthenticated(Boolean(json && json.authenticated));
+      setUser((json && json.user) ?? null);
     } catch {
       setAuthenticated(false);
       setUser(null);
@@ -56,28 +48,38 @@ export function useAuthStatus() {
   }, [refresh]);
 
   // helper: debounce pemanggilan refresh + regenerate
-  const refreshAndRegenerate = useCallback(() => {
+  const refreshAndRegenerate = useCallback((action?: AuthAction) => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(async () => {
       await refresh();
-      regenerateCartToken();
-      fetchCart();
+      // Optimize: only touch cart for login/logout or legacy events
+      if (!action) {
+        // legacy: unknown source, do both
+        regenerateCartToken();
+        fetchCart();
+        return;
+      }
+      if (action === 'login' || action === 'logout') {
+        // auth.ts already regenerates token; only refetch cart
+        fetchCart();
+      }
     }, 150);
   }, [refresh, fetchCart]);
 
   // listen events
   useEffect(() => {
-    function onAuthChanged() {
-      refreshAndRegenerate();
+    function onAuthChanged(e: Event) {
+      const action = (e as CustomEvent<{ action?: AuthAction }>).detail?.action;
+      refreshAndRegenerate(action);
     }
 
     if (typeof window !== "undefined") {
-      window.addEventListener("auth:changed", onAuthChanged);
+      window.addEventListener(AUTH_EVENT, onAuthChanged as EventListener);
     }
 
     return () => {
       if (typeof window !== "undefined") {
-        window.removeEventListener("auth:changed", onAuthChanged);
+        window.removeEventListener(AUTH_EVENT, onAuthChanged as EventListener);
       }
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);

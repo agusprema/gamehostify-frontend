@@ -2,8 +2,10 @@ import PageTransition from "@/components/animations/PageTransition";
 import Wrapper from "@/components/ui/Wrapper";
 import Link from '@/components/ui/Link';
 import RegisterForm from '@/components/auth/RegisterForm';
+import { requireGuest } from '@/lib/server/auth-guard';
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  await requireGuest();
   return (
     <PageTransition>
       <Wrapper className="flex items-center justify-center">
@@ -24,4 +26,3 @@ export default function RegisterPage() {
     </PageTransition>
   );
 }
-

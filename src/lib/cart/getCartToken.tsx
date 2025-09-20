@@ -45,13 +45,13 @@ export async function getCartToken(): Promise<string | null> {
         return null;
       }
 
-      const json = await res.json().catch(() => null as any);
+      const json = await res.json().catch(() => null);
       const newToken: string | null = json?.data?.token ?? null;
       if (newToken) tokenCache = newToken;
 
       inFlightRequest = null;
       return tokenCache;
-    } catch (e) {
+    } catch {
       if (process.env.NODE_ENV !== 'production') {
         console.warn('Cart token gagal dibuat (network).');
       }

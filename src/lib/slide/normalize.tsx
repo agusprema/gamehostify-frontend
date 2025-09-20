@@ -17,45 +17,46 @@ function toAbsolute(url: string | null | undefined, base?: string): string | nul
 }
 
 /** Normalize any raw item from API into Slide */
-export function normalizeSlide(raw: any, baseUrl?: string): Slide | null {
-  if (!raw) return null;
+export function normalizeSlide(raw: unknown, baseUrl?: string): Slide | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
 
-  const id = Number(raw.id ?? 0);
+  const id = Number((r.id as number | string | undefined) ?? 0);
   if (!id) return null; // skip invalid
 
-  const title = String(raw.title ?? '').trim();
-  const subtitle = raw.subtitle != null ? String(raw.subtitle) : null;
+  const title = String((r.title as string | number | undefined) ?? '').trim();
+  const subtitle = r.subtitle != null ? String(r.subtitle as string | number) : null;
 
   // Some APIs send HTML in description, some plain text. Accept both.
-  const descHtml = (typeof raw.description === 'string' && raw.description.includes('<'))
-    ? raw.description
-    : (raw.descriptionHtml ?? null);
+  const descHtml = (typeof r.description === 'string' && r.description.includes('<'))
+    ? (r.description as string)
+    : ((r.descriptionHtml as string | null | undefined) ?? null);
 
-  const descPlain = typeof raw.description === 'string' && !raw.description.includes('<')
-    ? raw.description
-    : (raw.descriptionText ?? null);
+  const descPlain = typeof r.description === 'string' && !r.description.includes('<')
+    ? (r.description as string)
+    : ((r.descriptionText as string | null | undefined) ?? null);
 
   // image fallbacks: image_desktop, image, imageUrl
   const image = toAbsolute(
-    raw.image_desktop ?? raw.image ?? raw.imageUrl ?? null,
+    (r.image_desktop as string | null | undefined) ?? (r.image as string | null | undefined) ?? (r.imageUrl as string | null | undefined) ?? null,
     baseUrl,
   ) ?? '';
 
   const imageMobile = toAbsolute(
-    raw.image_mobile ?? raw.imageMobile ?? null,
+    (r.image_mobile as string | null | undefined) ?? (r.imageMobile as string | null | undefined) ?? null,
     baseUrl,
   );
 
-  const buttonText = String(raw.buttonText ?? raw.button_text ?? 'Lihat Promo');
-  const buttonUrl = toAbsolute(raw.buttonUrl ?? raw.button_url ?? null, baseUrl);
+  const buttonText = String((r.buttonText as string | number | undefined) ?? (r.button_text as string | number | undefined) ?? 'Lihat Promo');
+  const buttonUrl = toAbsolute(((r.buttonUrl as string | null | undefined) ?? (r.button_url as string | null | undefined) ?? null), baseUrl);
 
-  const badge = raw.badge != null ? String(raw.badge) : null;
-  const promoCode = raw.promoCode ?? raw.promo_code ?? null;
+  const badge = r.badge != null ? String(r.badge as string | number) : null;
+  const promoCode = (r.promoCode as string | null | undefined) ?? (r.promo_code as string | null | undefined) ?? null;
 
-  const validUntilLabel = raw.validUntilLabel ?? raw.valid_until_label ?? null;
-  const validUntil = raw.validUntil ?? raw.valid_until ?? null;
+  const validUntilLabel = (r.validUntilLabel as string | null | undefined) ?? (r.valid_until_label as string | null | undefined) ?? null;
+  const validUntil = (r.validUntil as string | null | undefined) ?? (r.valid_until as string | null | undefined) ?? null;
 
-  let meta: any = raw.meta ?? null;
+  let meta: unknown = (r.meta as unknown) ?? null;
   if (Array.isArray(meta) && meta.length === 0) meta = null; // collapse [] to null for simpler UI
 
   return {
@@ -72,29 +73,30 @@ export function normalizeSlide(raw: any, baseUrl?: string): Slide | null {
     promoCode,
     validUntilLabel,
     validUntil,
-    meta,
+    meta: (meta as Slide['meta']) ?? null,
   };
 }
 
 /** Normalize a list (handles various API envelope shapes). */
-export function normalizeSlidesPayload(payload: any, baseUrl?: string): Slide[] {
-  // Accept shapes: { data: [...] }, { data: { Slider: [...] } }, { Slider: [...] }, [...]
-  const candidates: any[] = Array.isArray(payload)
-    ? payload
-    : Array.isArray(payload?.data?.Slider)
-      ? payload.data.Slider
-      : Array.isArray(payload?.data?.slider)
-        ? payload.data.slider
-        : Array.isArray(payload?.data)
-          ? payload.data
-          : Array.isArray(payload?.Slider)
-            ? payload.Slider
-            : Array.isArray(payload?.slider)
-              ? payload.slider
-              : [];
+export function normalizeSlidesPayload(payload: unknown, baseUrl?: string): Slide[] {
+  const candidatesUnknown: unknown[] = (() => {
+    if (Array.isArray(payload)) return payload;
+    if (payload && typeof payload === 'object') {
+      const root = payload as Record<string, unknown>;
+      const data = root.data && typeof root.data === 'object' ? (root.data as Record<string, unknown>) : null;
+      if (data) {
+        if (Array.isArray(data.Slider)) return data.Slider as unknown[];
+        if (Array.isArray(data.slider)) return data.slider as unknown[];
+        if (Array.isArray(data)) return data as unknown[];
+      }
+      if (Array.isArray(root.Slider)) return root.Slider as unknown[];
+      if (Array.isArray(root.slider)) return root.slider as unknown[];
+    }
+    return [] as unknown[];
+  })();
 
   const slides: Slide[] = [];
-  for (const item of candidates) {
+  for (const item of candidatesUnknown) {
     const s = normalizeSlide(item, baseUrl);
     if (s) slides.push(s);
   }

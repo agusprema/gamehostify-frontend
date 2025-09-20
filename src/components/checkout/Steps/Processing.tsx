@@ -18,4 +18,6 @@ const Processing: React.FC<ProcessingProps> = React.memo(({ transaction, onPaid 
   );
 });
 
+Processing.displayName = "Processing";
+
 export default Processing;

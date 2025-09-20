@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const res = NextResponse.json({ status: 'success', message: 'Logged out', data: null });
-  const prod = process.env.NODE_ENV === 'production';
   res.headers.set('Cache-Control', 'no-store');
-  res.cookies.set('token', '', { httpOnly: true, sameSite: 'strict', secure: prod, path: '/', maxAge: 0 });
+  const forwardedProto = req.headers.get('x-forwarded-proto');
+  const proto = forwardedProto ? forwardedProto.split(',')[0].trim() : req.nextUrl.protocol.replace(':', '');
+  const isHttps = proto === 'https';
+  res.cookies.set('token', '', { httpOnly: true, sameSite: 'strict', secure: isHttps, path: '/', maxAge: 0 });
   return res;
 }
-

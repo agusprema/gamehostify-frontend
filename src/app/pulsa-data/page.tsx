@@ -4,6 +4,7 @@ import PageTransition from "@/components/animations/PageTransition";
 import { Metadata } from "next";
 import { fetchJson } from "@/lib/fetchJson";
 import { joinUrl } from "@/lib/url";
+import type { ApiResponse, OperatorsData } from "@/lib/apiTypes";
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
@@ -70,12 +71,12 @@ export const viewport = { themeColor: "#6b21a8" };
 
 
 export default async function PulsaDataPage() {
-  const API = process.env.BACKEND_API_BASE_URL ?? "";
-  const json = await fetchJson(
-    joinUrl(API, 'api/v1/operators'),
+  const json = await fetchJson<ApiResponse<OperatorsData>>(
+    'api/v1/operators',
     { headers: { Accept: "application/json" }, next: { revalidate: 3600 } }
   );
-  const operators = json?.data?.operators ?? null;
+  const data = (json?.data ?? {}) as Partial<OperatorsData>;
+  const operators = data.operators ?? null;
   if (!operators) {
     return (
       <PageTransition>

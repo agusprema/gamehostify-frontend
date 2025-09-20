@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef } from "react";
+import React, { useCallback } from "react";
 import NextLink from "next/link";
 import { useLoader } from "@/contexts/LoaderContext";
 import { useRouter, usePathname } from "next/navigation";
@@ -25,7 +25,6 @@ export default function Link({
   const router = useRouter();
   const pathname = usePathname();
   const { showLoader, hideLoader } = useLoader();
-  const loaderTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
