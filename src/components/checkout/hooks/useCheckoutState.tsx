@@ -10,7 +10,7 @@ import type {
   CheckoutStep,
   CustomerFormValues,
   PaymentMethodsMap,
-  CheckoutTransaction,
+  PaymentStatusPayload,
 } from "../types/checkout";
 import { buildErrorObjects, updateNestedProps } from "../utils/checkout";
 import logger from "@/lib/logger";
@@ -43,9 +43,10 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
   const [selectedMethod, setSelectedMethod] = useState("");
   const [selectedChannel, setSelectedChannel] = useState("");
   const [channelProperties, setChannelProperties] = useState<Record<string, unknown>>({});
-  const [transaction, setTransaction] = useState<CheckoutTransaction | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [status, setStatus] = useState<"success" | "cancel" | "failed" | "expired">("success");
+  const [trackingId, setTrackingId] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatusPayload | null>(null);
 
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
   const [loadingCart, setLoadingCart] = useState(true);
@@ -70,7 +71,6 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
     async function loadAll() {
       // Handle redirect dari payment gateway
       if (initialStatus && initialReferenceId) {
-        setTransaction(null);
         setOrderId(initialReferenceId);
         setStatus(initialStatus);
         setStep("success");
@@ -156,11 +156,12 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
 
   const resetForNewPayment = useCallback(() => {
     setxenditMessage(null);
-    setTransaction(null);
     setChannelServerErrors({});
     setCustomerServerErrors({});
     setIsPaying(false);
     setStep("payment");
+    setTrackingId(null);
+    setPaymentStatus(null);
   }, []);
 
   const handlePayment = useCallback(async () => {
@@ -168,6 +169,8 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
     setIsPaying(true);
     setCustomerServerErrors({});
     setChannelServerErrors({});
+    setTrackingId(null);
+    setPaymentStatus(null);
 
     try {
       const cartToken = await getCartToken();
@@ -185,9 +188,9 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
           body: JSON.stringify((() => {
             const payload: Record<string, unknown> = {
               cart_token: cartToken,
-              payment_method: selectedMethod,
               channel_code: selectedChannel,
               channel_properties: channelProperties,
+              coupon_code: code ?? null,
             };
             if (!authenticated) {
               payload.customer = {
@@ -214,8 +217,17 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       }
 
       if (json.status === "success") {
-        setTransaction(json.data);
-        setOrderId(json.data.reference_id);
+        const newTrackingId = json.data?.tracking_id as string | undefined;
+        if (!newTrackingId) {
+          throw new Error("Tracking ID missing in response");
+        }
+        setTrackingId(newTrackingId);
+        setPaymentStatus({
+          status: "queued",
+          tracking_id: newTrackingId,
+          queued: Boolean(json.data?.queued),
+        });
+        setOrderId(null);
         setStep("processing");
       } else {
         toast.error("Pembayaran gagal. Silakan coba lagi.");
@@ -228,7 +240,125 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
     } finally {
       setIsPaying(false);
     }
-  }, [selectedMethod, selectedChannel, customerInfo, channelProperties, authenticated]);
+  }, [selectedChannel, customerInfo, channelProperties, authenticated, code]);
+
+  useEffect(() => {
+    if (!trackingId) return;
+
+    let cancelled = false;
+    let attempt = 0;
+    const baseDelay = 3000;
+    const maxDelay = 15000;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const scheduleNext = () => {
+      const delay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+      attempt += 1;
+      timeoutId = setTimeout(pollStatus, delay);
+    };
+
+    const handleFinalStateCleanup = () => {
+      setTrackingId(null);
+      attempt = 0;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
+    };
+
+    const pollStatus = async () => {
+      try {
+        const res = await apiFetch(`api/v1/payment/status/${trackingId}`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+        });
+        const json = await res.json();
+
+        if (cancelled) return;
+
+        if (res.status === 400 || res.status === 404) {
+          handleFinalStateCleanup();
+          toast.error(
+            "Tracking pembayaran tidak ditemukan atau sudah kedaluwarsa. Silakan kirim ulang permintaan pembayaran."
+          );
+          setStep("payment");
+          return;
+        }
+
+        if (!res.ok || json?.status !== "success" || !json?.data) {
+          throw new Error("Invalid status response");
+        }
+
+        const data = json.data as PaymentStatusPayload;
+
+        setPaymentStatus((prev) => {
+          if (prev?.status !== data.status && data.status === "manual_review") {
+            toast.info(
+              "Transaksi membutuhkan review manual. Tim kami akan menghubungi Anda jika diperlukan."
+            );
+          }
+          return data;
+        });
+
+        switch (data.status) {
+          case "queued":
+          case "processing": {
+            scheduleNext();
+            break;
+          }
+          case "manual_review": {
+            handleFinalStateCleanup();
+            setStep("processing");
+            break;
+          }
+          case "success": {
+            handleFinalStateCleanup();
+            setStep("success");
+            if (data.reference_id) {
+              setOrderId(data.reference_id);
+              setStatus("success");
+              router.push(`/invoice?ref=${encodeURIComponent(data.reference_id)}`);
+            } else {
+              toast.success("Permintaan pembayaran berhasil diproses.");
+            }
+            break;
+          }
+          case "invalid": {
+            handleFinalStateCleanup();
+            const errors = (data.errors ?? {}) as Record<string, string[] | string>;
+            const { customer, channel, hasCustomerErr, hasChannelErr } = buildErrorObjects(errors);
+            setCustomerServerErrors(customer);
+            setChannelServerErrors(channel);
+            toast.error(data.message ?? "Data pembayaran tidak valid. Mohon periksa kembali.");
+            if (hasCustomerErr) setStep("info");
+            else if (hasChannelErr) setStep("payment");
+            else setStep("payment");
+            break;
+          }
+          case "failed": {
+            handleFinalStateCleanup();
+            toast.error(data.message ?? "Pembayaran gagal diproses. Silakan coba lagi.");
+            setStep("payment");
+            break;
+          }
+          default: {
+            scheduleNext();
+          }
+        }
+      } catch (err) {
+        if (cancelled) return;
+        logger.error("Payment status polling error", err);
+        scheduleNext();
+      }
+    };
+
+    pollStatus();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [trackingId, toast, router]);
 
   // ---------------------------- Memo API ----------------------------
   return useMemo(
@@ -243,7 +373,6 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       selectedChannel,
       setSelectedChannel,
       channelProperties,
-      transaction,
       orderId,
       isPaying,
       customerServerErrors,
@@ -257,7 +386,9 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       handleChannelPropertyChange,
       handlePayment,
       resetForNewPayment,
-      status
+      status,
+      trackingId,
+      paymentStatus,
     }),
     [
       step,
@@ -267,7 +398,6 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       selectedMethod,
       selectedChannel,
       channelProperties,
-      transaction,
       orderId,
       isPaying,
       customerServerErrors,
@@ -281,7 +411,9 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       handleChannelPropertyChange,
       handlePayment,
       resetForNewPayment,
-      status
+      status,
+      trackingId,
+      paymentStatus,
     ]
   );
 }

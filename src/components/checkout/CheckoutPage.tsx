@@ -56,9 +56,10 @@ export default function CheckoutPage() {
     total,
     save_amount,
     code,
-    transaction,
     orderId,
     status,
+    trackingId,
+    paymentStatus,
     handleCustomerInfoSubmit,
     handleChannelPropertyChange,
     handlePayment,
@@ -197,9 +198,9 @@ export default function CheckoutPage() {
         total={total}
       />
     );
-  } else if (step === "processing" && transaction) {
+  } else if (step === "processing") {
     mainContent = (
-      <Processing transaction={transaction} onPaid={() => setStep("success")} />
+      <Processing trackingId={trackingId} status={paymentStatus} />
     );
   } else if (step === "success") {
     mainContent = (
