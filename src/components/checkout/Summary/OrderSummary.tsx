@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Group, LoaderCircle, X } from "lucide-react";
 import { CartItem, PaymentMethodsMap } from "@/components/checkout/types/checkout";
 import Image from "next/image";
+import Input from "@/components/ui/Input";
+import Card from "@/components/ui/Card";
 
 interface Props {
   items: CartItem[];
@@ -30,7 +32,7 @@ const OrderSummary: React.FC<Props> = React.memo(({
   code = null,
   isLoadingCode = false
 }) => {
-  const [couponCode, setCouponCode] = useState(code);
+  const [couponCode, setCouponCode] = useState<string | null>(null);
 
   // Normal content jika data sudah ready
   const selectedChannelObj = useMemo(() => {
@@ -55,9 +57,13 @@ const OrderSummary: React.FC<Props> = React.memo(({
     onSubmit('', true);
   }, [onSubmit]);
 
+  useEffect(() => {
+    setCouponCode(code);
+  }, [code]);
+
   if (isLoading) {
     return (
-      <aside className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24" aria-labelledby="order-summary-heading">
+      <Card className="sticky top-24" aria-labelledby="order-summary-heading">
         <h2 id="order-summary-heading" className="text-xl text-gray-900 dark:text-white mb-6 flex items-center">
           <Group className="h-6 w-6 mr-2 text-yellow-500" aria-hidden="true" />
           Order Summary
@@ -84,12 +90,12 @@ const OrderSummary: React.FC<Props> = React.memo(({
           <div className="w-full h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
           <div className="w-2/3 h-6 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
         </div>
-      </aside>
+      </Card>
     );
   }
 
   return (
-    <aside className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-md rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-md sticky top-24" aria-labelledby="order-summary-heading">
+    <Card className="sticky top-24" aria-labelledby="order-summary-heading">
       <h2 id="order-summary-heading" className="text-xl text-gray-900 dark:text-white mb-6 flex items-center">
         <Group className="h-6 w-6 mr-2 text-yellow-500" aria-hidden="true" />
         Order Summary
@@ -136,17 +142,17 @@ const OrderSummary: React.FC<Props> = React.memo(({
         </label>
         <div className="flex flex-col sm:flex-row gap-2">
 
-          <div className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-lg px-3 py-1.5 border border-gray-300 dark:border-gray-700 focus-within:border-primary-500 transition-all w-full sm:w-auto">
-            <input
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Input
               type="text"
               id="coupon"
               name="coupon"
               placeholder="e.g. DISCOUNT10"
               value={couponCode ?? ''}
               onChange={(e) => setCouponCode(e.target.value)}
-              className="bg-transparent text-gray-900 dark:text-white text-sm outline-none w-full"
+              className="text-sm"
             />
-            <X className={`h-4 w-4 text-gray-500 dark:text-gray-400 ml-2 cursor-pointer hover:text-red-500 ${!couponCode || !couponCode.trim() ? 'hidden': ''}`}
+            <X className={`h-4 w-4 text-gray-500 dark:text-gray-400 cursor-pointer hover:text-red-500 ${!couponCode || !couponCode.trim() ? 'hidden': ''}`}
                onClick={() => {
                   setCouponCode('');
                   handleRemove();
@@ -158,7 +164,7 @@ const OrderSummary: React.FC<Props> = React.memo(({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!couponCode || !couponCode.trim()}
+            disabled={couponCode === code || !couponCode || !couponCode.trim()}
             className="sm:w-auto w-full cursor-pointer px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             
@@ -199,7 +205,7 @@ const OrderSummary: React.FC<Props> = React.memo(({
           </span>
         </div>
       </div>
-    </aside>
+    </Card>
   );
 });
 

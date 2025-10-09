@@ -31,7 +31,7 @@ const API_BASE = normalizeBase(RAW_API_BASE);
 const BFF_KEY = process.env.BFF_API_KEYS || "";
 
 /** --- core handler --- */
-type Ctx = { params?: { path?: string[] } | Promise<{ path?: string[] }> };
+type Ctx = { params: Promise<{ path?: string[] }> };
 
 async function handle(req: NextRequest, ctx: Ctx) {
   if (!API_BASE) {
@@ -42,8 +42,8 @@ async function handle(req: NextRequest, ctx: Ctx) {
   }
 
   // Map: /api/<...> -> <API_BASE>/api/<...>
-  const resolved = (ctx?.params && typeof ctx.params.then === "function") ? await ctx.params : ctx?.params;
-  const segments: string[] = Array.isArray(resolved?.path) ? resolved.path : [];
+  const p = await ctx.params;
+  const segments: string[] = Array.isArray(p?.path) ? p.path : [];
   const search = req.nextUrl.search || "";
   const targetPath = `api/${segments.join("/")}`.replace(/\/$/, "");
   const targetUrl = `${API_BASE}/${targetPath}${search}`;
@@ -183,13 +183,13 @@ async function handle(req: NextRequest, ctx: Ctx) {
 }
 
 /** export all HTTP verbs */
-export const GET = handle;
-export const POST = handle;
-export const PUT = handle;
-export const PATCH = handle;
-export const DELETE = handle;
-export const HEAD = handle;
-export const OPTIONS = handle;
+export function GET(req: NextRequest, ctx: Ctx) { return handle(req, ctx); }
+export function POST(req: NextRequest, ctx: Ctx) { return handle(req, ctx); }
+export function PUT(req: NextRequest, ctx: Ctx) { return handle(req, ctx); }
+export function PATCH(req: NextRequest, ctx: Ctx) { return handle(req, ctx); }
+export function DELETE(req: NextRequest, ctx: Ctx) { return handle(req, ctx); }
+export function HEAD(req: NextRequest, ctx: Ctx) { return handle(req, ctx); }
+export function OPTIONS(req: NextRequest, ctx: Ctx) { return handle(req, ctx); }
 
 // (opsional) bila ingin memaksa Node runtime untuk route ini:
 // export const runtime = "nodejs";

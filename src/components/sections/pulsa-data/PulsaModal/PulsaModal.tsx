@@ -5,6 +5,8 @@ import { setFieldErrors } from "@/utils/rhf/setFieldErrors";
 import ProductModal from "@/components/ui/Modal/ProductModal";
 import { CommonPackage, PackageGroup } from "@/components/ui/Modal/types";
 import { Operator, OperatorPackage } from "../types";
+import { apiFetch } from "@/lib/apiFetch";
+import logger from "@/lib/logger";
 
 interface PulsaModalProps {
   operator: Operator | null;
@@ -26,6 +28,9 @@ export function PulsaModal({
   const [tab, setTab] = useState<"pulsa" | "data">("pulsa");
   const [phone, setPhone] = useState("");
   const [selectedPkg, setSelectedPkg] = useState<OperatorPackage | null>(null);
+  const [loadingPkgs, setLoadingPkgs] = useState(false);
+  const [pkgError, setPkgError] = useState<string | null>(null);
+  const [packages, setPackages] = useState<OperatorPackage[]>([]);
   // const inputId = useId();
 
   // RHF instance to enable setFieldErrors for server errors
@@ -36,12 +41,12 @@ export function PulsaModal({
   });
 
   const pulsaPackages = useMemo(
-    () => operator?.packages.filter((p) => p.type_package === "pulsa") ?? [],
-    [operator]
+    () => packages.filter((p) => p.type_package === "pulsa"),
+    [packages]
   );
   const dataPackages = useMemo(
-    () => operator?.packages.filter((p) => p.type_package === "data") ?? [],
-    [operator]
+    () => packages.filter((p) => p.type_package === "data"),
+    [packages]
   );
   // const currentPackages = tab === "pulsa" ? pulsaPackages : dataPackages;
 
@@ -49,7 +54,36 @@ export function PulsaModal({
     setPhone("");
     setSelectedPkg(null);
     setTab("pulsa");
-  }, [operator]);
+    setPackages([]);
+    setPkgError(null);
+    let aborted = false;
+    const load = async () => {
+      if (!isOpen || !operator?.slug) return;
+      try {
+        setLoadingPkgs(true);
+        const res = await apiFetch(`api/v1/operators/${operator.slug}/packages`, {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        const json = await res.json();
+        if (json?.status === "success") {
+          const list: OperatorPackage[] = json?.data?.packages ?? [];
+          if (!aborted) setPackages(list);
+        } else {
+          if (!aborted) setPkgError(json?.message || "Gagal memuat paket");
+        }
+      } catch (e) {
+        logger.error("Load operator packages failed", e);
+        if (!aborted) setPkgError("Gagal memuat paket");
+      } finally {
+        if (!aborted) setLoadingPkgs(false);
+      }
+    };
+    load();
+    return () => {
+      aborted = true;
+    };
+  }, [operator, isOpen]);
 
   useEffect(() => {
     if (selectedPkg) setTab(selectedPkg.type_package === "data" ? "data" : "pulsa");
@@ -103,7 +137,8 @@ export function PulsaModal({
       onGroupChange={(k) => setTab(k as "pulsa" | "data")}
       selectedPackage={selectedPkg as unknown as CommonPackage}
       onSelectPackage={(p) => setSelectedPkg(p as OperatorPackage)}
-      submitting={submitting}
+      submitting={submitting || loadingPkgs}
+      packagesLoading={loadingPkgs}
       onConfirm={handleConfirm}
       confirmText="Tambah ke Keranjang"
       size="xl"

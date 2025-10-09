@@ -4,6 +4,7 @@ let tokenCache: string | null = null;
 let inFlightRequest: Promise<string | null> | null = null;
 import { apiFetch } from '@/lib/apiFetch';
 import { joinUrl } from '@/lib/url';
+import logger from '@/lib/logger';
 
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -39,7 +40,7 @@ export async function getCartToken(): Promise<string | null> {
 
       if (!res.ok) {
         if (process.env.NODE_ENV !== 'production') {
-          console.warn('Gagal generate cart token (status ' + res.status + ').');
+          logger.warn('Gagal generate cart token (status ' + res.status + ').');
         }
         inFlightRequest = null;
         return null;
@@ -53,7 +54,7 @@ export async function getCartToken(): Promise<string | null> {
       return tokenCache;
     } catch {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('Cart token gagal dibuat (network).');
+        logger.warn('Cart token gagal dibuat (network).');
       }
       inFlightRequest = null;
       return null;

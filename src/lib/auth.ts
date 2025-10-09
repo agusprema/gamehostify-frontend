@@ -110,7 +110,6 @@ export async function refresh() {
 
 type UpdateProfilePayload = {
   name: string;
-  email: string;
 };
 
 export async function updateProfile(payload: UpdateProfilePayload) {
@@ -230,4 +229,116 @@ export async function resetPassword(payload: ResetPasswordPayload) {
     body: JSON.stringify(payload),
     credentials: 'include',
   });
+}
+
+// --- Email & Phone change flows ---
+
+type RequestEmailChangePayload = {
+  new_email: string;
+  method?: 'magic_link' | 'otp';
+};
+
+type ChangeRequestData = {
+  type: 'email' | 'phone';
+  method: 'magic_link' | 'otp';
+  rid: number;
+  token_expires_at?: string;
+  otp_expires_at?: string;
+  expires_in: number;
+  delivery: string;
+};
+
+export type ChangeRequestResponse = {
+  status: 'success';
+  message: string;
+  data: ChangeRequestData;
+};
+
+export async function requestEmailChange(payload: RequestEmailChangePayload) {
+  return apiRequest<ChangeRequestResponse>('/api/auth/email/change/request', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  });
+}
+
+type VerifyEmailMagicPayload = {
+  id: number;
+  token: string;
+};
+
+export async function verifyEmailChangeMagic(payload: VerifyEmailMagicPayload) {
+  const json = await apiRequest<unknown>('/api/auth/email/change/verify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  emitAuthChanged('profile');
+  return json;
+}
+
+type VerifyOtpPayload = { otp: string };
+
+export async function verifyEmailChangeOtp(payload: VerifyOtpPayload) {
+  const json = await apiRequest<unknown>('/api/auth/email/change/verify-otp', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  });
+  emitAuthChanged('profile');
+  return json;
+}
+
+type RequestPhoneChangePayload = { new_phone: string };
+
+export async function requestPhoneChange(payload: RequestPhoneChangePayload) {
+  return apiRequest<ChangeRequestResponse>('/api/auth/phone/change/request', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  });
+}
+
+export async function verifyPhoneChangeOtp(payload: VerifyOtpPayload) {
+  const json = await apiRequest<unknown>('/api/auth/phone/change/verify', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+    credentials: 'include',
+  });
+  emitAuthChanged('profile');
+  return json;
+}
+
+type VerifyPhoneMagicPayload = { id: number; token: string };
+
+export async function verifyPhoneChangeMagic(payload: VerifyPhoneMagicPayload) {
+  const json = await apiRequest<unknown>('/api/auth/phone/change/verify-token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  emitAuthChanged('profile');
+  return json;
 }

@@ -6,8 +6,6 @@ import { ShoppingCart } from "lucide-react";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { useCart } from "@/contexts/CartContext";
 import { apiFetch } from "@/lib/apiFetch";
-import { joinUrl } from "@/lib/url";
-import { useAuthStatus } from '@/hooks/useAuthStatus';
 import ProductInfo from "@/components/checkout/Steps/ProductInfo";
 
 import StepIndicator from "@/components/checkout/Steps/StepIndicator";
@@ -20,8 +18,11 @@ import Wrapper from "@/components/ui/Wrapper";
 import Link from "../ui/Link";
 
 import { useCheckoutState } from "./hooks/useCheckoutState";
+import logger from "@/lib/logger";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function CheckoutPage() {
+  const toast = useToast();
   const searchParams = useSearchParams();
   const referenceId = searchParams.get("reference_id") ?? undefined;
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -32,8 +33,6 @@ export default function CheckoutPage() {
   
   const [updateCartError, setUpdateCartError] = useState<string | null>(null);
   const [isLoadingCartUpdate, setIsLoadingCartUpdate] = useState<boolean>(false);
-
-  const { authenticated, user } = useAuthStatus();
 
   // Validasi status agar cocok dengan union type
   const rawStatus = searchParams.get("status");
@@ -81,7 +80,7 @@ export default function CheckoutPage() {
           };
           if (token) headers["X-Cart-Token"] = token;
           const res = await apiFetch(
-            joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/cart/remove'),
+            'api/v1/cart/remove',
             {
               method: "DELETE",
               headers,
@@ -92,7 +91,8 @@ export default function CheckoutPage() {
           if (!res.ok) throw new Error("Gagal menghapus item");
           await Promise.all([fetchCart(), fetchQuantity()]);
         } catch (err) {
-          console.error("Error remove:", err);
+          logger.error("Error remove:", err);
+          toast.error("Gagal menghapus item. Silakan coba lagi.");
         } finally {
           setRemovingId(null);
         }
@@ -131,43 +131,21 @@ export default function CheckoutPage() {
   // Main content sesuai step
   let mainContent: React.ReactNode = null;
   if (step === "info") {
-    if(!authenticated){
-      mainContent = (
-        <>
-          <CustomerInfo
-            items={items}
-            defaultValues={customerInfo}
-            onSubmit={handleCustomerInfoSubmit}
-            serverErrors={customerServerErrors}
-            removingId={removingId}
-            onRemove={handleRemoveItem}
-            onUpdate={handleCartUpdate}
-            updateCartError={updateCartError}
-            isLoadingCartUpdate={isLoadingCartUpdate}
-          />
-        </>
-      );
-    }else {
-      mainContent = (
-        <>
-          <h2 className="text-xl font-bold mb-4">Informasi Pelanggan</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name *</label>
-              <div className="w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-black dark:text-white border-gray-300 dark:border-gray-600">{user?.name}</div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number *</label>
-              <div className="w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-black dark:text-white border-gray-300 dark:border-gray-600">{user?.phone}</div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address *</label>
-              <div className="w-full bg-white dark:bg-gray-800 border rounded-lg px-4 py-3 text-black dark:text-white border-gray-300 dark:border-gray-600">{user?.email}</div>
-            </div>
-          </div>
-        </>
-      );
-    }
+    mainContent = (
+      <>
+        <CustomerInfo
+          items={items}
+          defaultValues={customerInfo}
+          onSubmit={handleCustomerInfoSubmit}
+          serverErrors={customerServerErrors}
+          removingId={removingId}
+          onRemove={handleRemoveItem}
+          onUpdate={handleCartUpdate}
+          updateCartError={updateCartError}
+          isLoadingCartUpdate={isLoadingCartUpdate}
+        />
+      </>
+    );
 
     {/* product info */}
     mainContent = (

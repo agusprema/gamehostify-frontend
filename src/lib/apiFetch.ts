@@ -45,17 +45,33 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     }
   }
 
-  // On the server, make relative URL absolute using app base URL
+  // On the server, make relative URL absolute using an internal/base URL.
+  // Prefer server-only base (APP_URL/INTERNAL_APP_URL) over public URL to avoid
+  // routing through external hosts like ngrok/Vercel domains from the server.
   if (isServer && finalUrl.startsWith('/')) {
-    let appBase = (
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      process.env.APP_URL ||
-      process.env.VERCEL_URL ||
-      ''
-    ).toString();
+    let appBase = '';
+    const candidates = [
+      process.env.APP_URL,
+      process.env.INTERNAL_APP_URL,
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+      process.env.NEXT_PUBLIC_BASE_URL,
+    ].filter(Boolean) as string[];
+
+    if (candidates.length) {
+      appBase = String(candidates[0]);
+    }
+
+    // In development, fall back to localhost to avoid external loopback
+    if (!appBase && process.env.NODE_ENV !== 'production') {
+      const port = process.env.PORT || '3000';
+      appBase = `http://localhost:${port}`;
+    }
+
+    // If it's a bare host (e.g. VERCEL_URL), coerce to https://
     if (appBase && !/^https?:\/\//i.test(appBase)) {
       appBase = `https://${appBase}`;
     }
+
     appBase = appBase.replace(/\/$/, '');
     if (appBase) {
       finalUrl = `${appBase}${finalUrl}`;

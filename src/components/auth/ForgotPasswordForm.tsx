@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { setFieldErrors } from "@/utils/rhf/setFieldErrors";
 import { forgotPassword } from "@/lib/auth";
 import { Mail } from "lucide-react";
+import Input from "@/components/ui/Input";
+import Form from "@/components/ui/Form";
 
 type FormValues = { email: string };
 
@@ -22,13 +24,27 @@ export default function ForgotPasswordForm() {
     defaultValues: { email: "" },
   });
 
+  function getMessage(val: unknown): string | null {
+    if (val && typeof val === 'object') {
+      if ('message' in (val as { message?: unknown })) {
+        const v = (val as { message?: unknown }).message;
+        if (typeof v === 'string') return v;
+      }
+      if ('data' in (val as { data?: { message?: unknown } })) {
+        const d = (val as { data?: { message?: unknown } }).data;
+        const mv = d?.message;
+        if (typeof mv === 'string') return mv;
+      }
+    }
+    return null;
+  }
+
   async function onSubmit(values: FormValues) {
     setFormError(null);
     setSuccessMsg(null);
     try {
       const res = await forgotPassword(values);
-      // Try to read message if provided by API
-      const message = (res as any)?.message || "Kami telah mengirim tautan reset ke email Anda.";
+      const message = getMessage(res) || "Kami telah mengirim tautan reset ke email Anda.";
       setSuccessMsg(String(message));
       reset({ email: values.email });
     } catch (err: unknown) {
@@ -41,50 +57,27 @@ export default function ForgotPasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {formError && (
-        <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-          {formError}
-        </div>
-      )}
-      {successMsg && (
-        <div className="text-sm text-green-400 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
-          {successMsg}
-        </div>
-      )}
-
-      <div>
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">Email</label>
-        <div className="relative">
-          <input
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            className={`w-full rounded-xl px-4 py-3 pl-10 border bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition ${
-              errors.email ? "border-red-500" : "border-gray-300"
-            }`}
-            {...register("email", {
-              required: "Email wajib diisi",
-              pattern: { value: /\S+@\S+\.\S+/, message: "Format email tidak valid" },
-            })}
-          />
-          <span className="absolute inset-y-0 left-3 flex items-center text-primary-500">
-            <Mail className="w-5" />
-          </span>
-        </div>
-        {errors.email?.message && (
-          <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
-        )}
-      </div>
+    <Form onSubmit={handleSubmit(onSubmit)} error={formError} success={successMsg}>
+      <Input
+        type="email"
+        label="Email"
+        placeholder="you@example.com"
+        leftIcon={<Mail className="w-5" />}
+        error={errors.email?.message}
+        autoComplete="email"
+        {...register("email", {
+          required: "Email wajib diisi",
+          pattern: { value: /\S+@\S+\.\S+/, message: "Format email tidak valid" },
+        })}
+      />
 
       <button
         type="submit"
         disabled={isSubmitting}
         className="cursor-pointer w-full inline-flex items-center justify-center rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-60 px-4 py-3 text-white font-semibold shadow-md transition"
       >
-        {isSubmitting ? "Memproses…" : "Kirim Link Reset"}
+        {isSubmitting ? "Memproses." : "Kirim Link Reset"}
       </button>
-    </form>
+    </Form>
   );
 }
-

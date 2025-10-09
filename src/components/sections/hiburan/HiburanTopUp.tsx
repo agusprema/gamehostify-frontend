@@ -10,6 +10,8 @@ import { CommonPackage } from "@/components/ui/Modal/types";
 import Link from "@/components/ui/Link";
 import { apiFetch } from "@/lib/apiFetch";
 import { joinUrl } from "@/lib/url";
+import logger from "@/lib/logger";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export interface HiburanTopUpProps {
   hiburans: Hiburan[];
@@ -18,16 +20,47 @@ export interface HiburanTopUpProps {
 
 export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpProps) {
   const { fetchCart, fetchQuantity } = useCart();
+  const toast = useToast();
   const [selected, setSelected] = useState<Hiburan | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
   const [target, setTarget] = useState("");
   const [selectedPkg, setSelectedPkg] = useState<HiburanPackage | null>(null);
+  const [packages, setPackages] = useState<HiburanPackage[]>([]);
+  const [loadingPkgs, setLoadingPkgs] = useState(false);
+  const [pkgError, setPkgError] = useState<string | null>(null);
 
   useEffect(() => {
     // reset when opening a new item or closing
     setTarget("");
     setSelectedPkg(null);
+    setPackages([]);
+    setPkgError(null);
+    let aborted = false;
+    const load = async () => {
+      if (!selected?.slug) return;
+      try {
+        setLoadingPkgs(true);
+        const res = await apiFetch(`api/v1/entertainments/${selected.slug}/packages`, {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        const json = await res.json();
+        if (json?.status === "success") {
+          const list: HiburanPackage[] = json?.data?.packages ?? [];
+          if (!aborted) setPackages(list);
+        } else if (!aborted) {
+          setPkgError(json?.message || "Gagal memuat paket");
+        }
+      } catch (e) {
+        logger.error("Load entertainment packages failed", e);
+        if (!aborted) setPkgError("Gagal memuat paket");
+      } finally {
+        if (!aborted) setLoadingPkgs(false);
+      }
+    };
+    if (selected) load();
+    return () => { aborted = true; };
   }, [selected]);
 
   const handleTopUp = async (pkg: HiburanPackage, target: string) => {
@@ -63,10 +96,12 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
 
       if (json.status === "success") {
         await Promise.all([fetchCart(), fetchQuantity()]);
+        toast.success("Berhasil ditambahkan ke keranjang.");
         setSelected(null);
       }
     } catch (e) {
-      console.error(e);
+      logger.error(e);
+      toast.error("Gagal menambahkan ke keranjang. Silakan coba lagi.");
     } finally {
       setIsProcessing(false);
     }
@@ -125,11 +160,12 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
         target={target}
         onTargetChange={setTarget}
         errorMessages={formErrors.target ?? []}
-        groups={[{ key: "default", label: "Paket", packages: ((selected?.packages || []) as unknown as CommonPackage[]) }]}
+        groups={[{ key: "default", label: "Paket", packages: ((packages || []) as unknown as CommonPackage[]) }]}
         activeGroupKey="default"
         selectedPackage={selectedPkg as unknown as CommonPackage}
         onSelectPackage={(p) => setSelectedPkg(p as HiburanPackage)}
-        submitting={isProcessing}
+        submitting={isProcessing || loadingPkgs}
+        packagesLoading={loadingPkgs}
         onConfirm={() => { if (selectedPkg && target.trim()) handleTopUp(selectedPkg, target); }}
         confirmText="Add to Cart"
         size="xl"

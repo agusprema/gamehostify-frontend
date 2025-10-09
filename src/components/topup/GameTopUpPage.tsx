@@ -4,34 +4,10 @@ import dynamic from "next/dynamic";
 import { Gamepad2, Zap, Shield, Headphones, Award } from 'lucide-react';
 import GameTopUp from '../sections/Game/GameTopUp';
 import Wrapper from "@/components/ui/Wrapper";
+import { Game } from "../sections/Game/types";
 
 const Faq = dynamic(() => import("@/components/sections/Faq/Faq"), { ssr: false });
 const Testimonials = dynamic(() => import("@/components/sections/Testimonials/Testimonials"), { ssr: false });
-
-interface GamePackage {
-  id: string;
-  name: string;
-  amount: string;
-  type: string;
-  final_price: number;
-  original_price?: number;
-  is_popular?: boolean;
-  has_discount: boolean;
-  metadata?: { bonus?: string };
-}
-
-interface Game {
-  id: string;
-  name: string;
-  slug: string;
-  logo: string;
-  category: string;
-  rating?: number;
-  label: string;
-  placeholder: string;
-  is_popular?: boolean;
-  packages: GamePackage[];
-}
 
 interface GameTopUpPageProps {
   games: Game[];

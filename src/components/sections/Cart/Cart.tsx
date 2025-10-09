@@ -17,6 +17,8 @@ import { apiFetch } from "@/lib/apiFetch";
 import { joinUrl } from "@/lib/url";
 import type { CartItem as NormalizedCartItem } from "@/components/checkout/types/checkout";
 import type { BaseCartItem } from "./types";
+import logger from "@/lib/logger";
+import { useToast } from "@/components/ui/ToastProvider";
 
 // --- Dynamic imports (code splitting) ---
 const CartHeader = dynamic(() => import("./CartHeader"), { ssr: false });
@@ -55,6 +57,7 @@ interface CartProps {
 
 function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
   const { cart, quantity, fetchCart, fetchQuantity } = useCart();
+  const toast = useToast();
   const [loadingCart, setLoadingCart] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -131,7 +134,8 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
           await Promise.all([fetchCart(), fetchQuantity()]);
           setLastFetched(Date.now());
         } catch (err) {
-          console.error("Error remove:", err);
+          logger.error("Error remove:", err);
+          toast.error("Gagal menghapus item. Silakan coba lagi.");
         } finally {
           setRemovingId(null);
         }

@@ -16,6 +16,7 @@ import {
   Send,
 } from "lucide-react";
 import Link from "@/components/ui/Link";
+import Input from "@/components/ui/Input";
 
 const Footer = () => {
   const [subEmail, setSubEmail] = React.useState("");
@@ -154,12 +155,12 @@ const Footer = () => {
             </p>
 
             <form onSubmit={handleSubscribe} className="flex sm:flex-col flex-row items-center gap-3 mt-4">
-              <input
+              <Input
                 type="email"
                 value={subEmail}
                 onChange={(e) => setSubEmail(e.target.value)}
                 placeholder="Masukkan email kamu"
-                className="w-full flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm text-gray-800 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+                className="text-sm"
               />
               <button
                 type="submit"

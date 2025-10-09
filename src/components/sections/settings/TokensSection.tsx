@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { listTokens, refresh, revokeOtherTokens, revokeToken } from "@/lib/auth";
+import Card from "@/components/ui/Card";
 
 type TokenItem = { id: number | string; name?: string | null; created_at?: string | null; last_used_at?: string | null };
 
@@ -88,20 +89,20 @@ function TokensSectionInner() {
   }
 
   return (
-    <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-5">
+    <Card title="Personal Access Tokens" className="p-5" variant="glass">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">Personal Access Tokens</h2>
+        <div />
         <div className="flex gap-2">
           <button
             onClick={onRefreshToken}
             disabled={refreshing}
-            className="cursor-pointer inline-flex items-center justify-center rounded-lg bg-zinc-700 hover:bg-zinc-600 disabled:opacity-60 px-3 py-2 text-white text-sm"
-          >{refreshing ? 'Merefresh…' : 'Refresh Token'}</button>
+            className="cursor-pointer inline-flex items-center justify-center rounded-lg bg-primary-600/90 hover:bg-primary-500/90 disabled:opacity-60 px-3 py-2 text-white text-sm backdrop-blur-sm shadow-sm ring-1 ring-white/10"
+          >{refreshing ? 'Merefresh.' : 'Refresh Token'}</button>
           <button
             onClick={onRevokeOthers}
             disabled={revokingOthers}
-            className="cursor-pointer inline-flex items-center justify-center rounded-lg bg-rose-700 hover:bg-rose-600 disabled:opacity-60 px-3 py-2 text-white text-sm"
-          >{revokingOthers ? 'Mencabut…' : 'Cabut Token Lain'}</button>
+            className="cursor-pointer inline-flex items-center justify-center rounded-lg bg-rose-600/90 hover:bg-rose-500/90 disabled:opacity-60 px-3 py-2 text-white text-sm backdrop-blur-sm shadow-sm ring-1 ring-white/10"
+          >{revokingOthers ? 'Mencabut.' : 'Cabut Token Lain'}</button>
         </div>
       </div>
       {tokensMessage && (
@@ -112,7 +113,7 @@ function TokensSectionInner() {
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-zinc-400">
+            <tr className="text-left text-gray-200/80 dark:text-gray-200/80">
               <th className="py-2 pr-4">ID</th>
               <th className="py-2 pr-4">Nama</th>
               <th className="py-2 pr-4">Dibuat</th>
@@ -122,12 +123,12 @@ function TokensSectionInner() {
           </thead>
           <tbody>
             {tokensLoading ? (
-              <tr><td className="py-3 text-zinc-400" colSpan={5}>Memuat…</td></tr>
+              <tr><td className="py-3 text-gray-300/80" colSpan={5}>Memuat.</td></tr>
             ) : tokens.length === 0 ? (
-              <tr><td className="py-3 text-zinc-400" colSpan={5}>Belum ada token.</td></tr>
+              <tr><td className="py-3 text-gray-300/80" colSpan={5}>Belum ada token.</td></tr>
             ) : (
               tokens.map((t) => (
-                <tr key={String(t.id)} className="border-t border-zinc-800 text-zinc-300">
+                <tr key={String(t.id)} className="border-t border-white/10 text-gray-100/90">
                   <td className="py-2 pr-4">{t.id}</td>
                   <td className="py-2 pr-4">{t.name || '-'}</td>
                   <td className="py-2 pr-4">{t.created_at || '-'}</td>
@@ -136,8 +137,8 @@ function TokensSectionInner() {
                     <button
                       onClick={() => onRevoke(t.id)}
                       disabled={actionId === t.id}
-                      className="cursor-pointer inline-flex items-center justify-center rounded-md bg-rose-600 hover:bg-rose-500 disabled:opacity-60 px-3 py-1.5 text-white"
-                    >{actionId === t.id ? 'Mencabut…' : 'Cabut'}</button>
+                      className="cursor-pointer inline-flex items-center justify-center rounded-md bg-rose-600/90 hover:bg-rose-500/90 disabled:opacity-60 px-3 py-1.5 text-white backdrop-blur-sm shadow-sm ring-1 ring-white/10"
+                    >{actionId === t.id ? 'Mencabut.' : 'Cabut'}</button>
                   </td>
                 </tr>
               ))
@@ -145,7 +146,7 @@ function TokensSectionInner() {
           </tbody>
         </table>
       </div>
-    </section>
+    </Card>
   );
 }
 

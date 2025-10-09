@@ -13,11 +13,13 @@ import { handleApiErrors } from "@/utils/apiErrorHandler";
 import GameFilterBar from "./GameFilterBar";
 import { apiFetch } from "@/lib/apiFetch";
 import { joinUrl } from "@/lib/url";
+import logger from "@/lib/logger";
+import { useToast } from "@/components/ui/ToastProvider";
 
 /* ---------- Debounce ---------- */
-function debounce<T extends (...args: unknown[]) => void>(fn: T, delay = 400) {
+function debounce<Args extends unknown[]>(fn: (...args: Args) => void, delay = 400) {
   let timeout: ReturnType<typeof setTimeout>;
-  return (...args: Parameters<T>) => {
+  return (...args: Args) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => fn(...args), delay);
   };
@@ -32,6 +34,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   height = 800,
 }) => {
   const { fetchQuantity, fetchCart } = useCart();
+  const toast = useToast();
 
   /* ---------- States ---------- */
   const [games, setGames] = useState<Game[]>(initialGames);
@@ -48,6 +51,9 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   const [selectedPackage, setSelectedPackage] = useState<GamePackage | null>(null);
   const [gameAccount, setGameAccount] = useState("");
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
+  const [gamePackages, setGamePackages] = useState<GamePackage[]>([]);
+  const [loadingPkgs, setLoadingPkgs] = useState(false);
+  const [pkgError, setPkgError] = useState<string | null>(null);
 
   /* ---------- Fetch Categories ---------- */
   const fetchCategories = useCallback(async () => {
@@ -64,13 +70,49 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
       );
       setCategories(mappedCategories);
     } catch (err) {
-      console.error("Fetch categories error:", err);
+      logger.error("Fetch categories error:", err);
     }
   }, []);
 
   useEffect(() => {
     if (!isHome) fetchCategories();
   }, [fetchCategories, isHome]);
+
+  /* ---------- Fetch Packages for Selected Game (lazy) ---------- */
+  useEffect(() => {
+    let aborted = false;
+    setFormErrors({});
+    setSelectedPackage(null);
+    setGameAccount("");
+    setGamePackages([]);
+    setPkgError(null);
+    const load = async () => {
+      if (!selectedGame?.slug) return;
+      try {
+        setLoadingPkgs(true);
+        const res = await apiFetch(`api/v1/games/${selectedGame.slug}/packages`, {
+          headers: { Accept: "application/json" },
+          cache: "no-store",
+        });
+        const json = await res.json();
+        if (json?.status === "success") {
+          const list: GamePackage[] = json?.data?.packages ?? [];
+          if (!aborted) setGamePackages(list);
+        } else if (!aborted) {
+          setPkgError(json?.message || "Gagal memuat paket");
+        }
+      } catch (e) {
+        logger.error("Load game packages failed", e);
+        if (!aborted) setPkgError("Gagal memuat paket");
+      } finally {
+        if (!aborted) setLoadingPkgs(false);
+      }
+    };
+    if (selectedGame) load();
+    return () => {
+      aborted = true;
+    };
+  }, [selectedGame]);
 
   /* ---------- Fetch Games ---------- */
   const fetchGames = useCallback(
@@ -96,7 +138,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         if (searchParam) url.searchParams.set("search", searchParam);
         if (categoryParam) url.searchParams.set("category", categoryParam);
 
-        console.log(url.toString());
+        logger.debug(url.toString());
         const res = await apiFetch(url.toString(), {
           headers: { Accept: "application/json" },
           cache: "no-store",
@@ -109,7 +151,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         setCursor(data?.next_cursor ?? null);
         setHasMore(Boolean(data?.has_more));
       } catch (err) {
-        console.error("Fetch games error:", err);
+        logger.error("Fetch games error:", err);
       } finally {
         setLoadingMore(false);
         isFetchingRef.current = false;
@@ -171,10 +213,12 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
 
       if (json.status === "success") {
         await Promise.all([fetchCart(), fetchQuantity()]);
+        toast.success("Berhasil ditambahkan ke keranjang.");
         setSelectedGame(null);
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
+      toast.error("Gagal menambahkan ke keranjang. Silakan coba lagi.");
     } finally {
       setIsProcessing(false);
     }
@@ -281,12 +325,13 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         target={gameAccount}
         onTargetChange={setGameAccount}
         errorMessages={formErrors.target ?? []}
-        groups={[{ key: "default", label: "Paket", packages: ((selectedGame?.packages || []) as unknown as CommonPackage[]) }]}
+        groups={[{ key: "default", label: "Paket", packages: ((gamePackages || []) as unknown as CommonPackage[]) }]}
         activeGroupKey="default"
         onGroupChange={() => {}}
         selectedPackage={selectedPackage as unknown as CommonPackage}
         onSelectPackage={(p) => setSelectedPackage(p as GamePackage)}
-        submitting={isProcessing}
+        submitting={isProcessing || loadingPkgs}
+        packagesLoading={loadingPkgs}
         onConfirm={handleTopUp}
         confirmText="Add to Cart"
       />

@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { Search, RefreshCw, ReceiptText } from "lucide-react";
+import { Search, RefreshCw, ReceiptText, ChevronDown, FileDown } from "lucide-react";
 import QRCode from "react-qr-code";
 import Wrapper from "@/components/ui/Wrapper";
+import Input from "@/components/ui/Input";
+import Card from "@/components/ui/Card";
 import InvoiceSkeleton from "./InvoiceSkeleton";
 import { readableStatus, statusColor } from "./status";
 import { apiFetch } from "@/lib/apiFetch";
-import { joinUrl } from "@/lib/url";
+import { useAuthStatus } from "@/hooks/useAuthStatus";
 
 interface InvoiceItem {
   package_name: string;
@@ -36,7 +38,13 @@ interface InvoiceData {
   items: InvoiceItem[];
 }
 
-const API_BASE = process.env.BACKEND_API_BASE_URL ?? "";
+interface TransactionSummary {
+  invoice_id: string;
+  reference_id: string;
+  status: string;
+  items_count?: number;
+  created_at: string;
+}
 
 // Helper format rupiah
 const formatRupiah = (val: number) =>
@@ -60,6 +68,40 @@ const isFinal = (status: string) =>
 // Poll interval (ms)
 const POLL_INTERVAL = 10_000; // 10s
 
+// Known invoice status codes
+const KNOWN_STATUSES = [
+  "ACCEPTING_PAYMENTS",
+  "REQUIRES_ACTION",
+  "AUTHORIZED",
+  "CANCELED",
+  "EXPIRED",
+  "SUCCEEDED",
+  "FAILED",
+  "PENDING",
+  "WAITING_PAYMENT",
+  "REFUND",
+] as const;
+const STATUS_SET = new Set<string>(KNOWN_STATUSES);
+
+// Try to normalize a status string (code or label) into a known code
+const normalizeStatus = (s: string): string => {
+  if (!s) return s;
+  const up = s.toUpperCase();
+  const underscored = up.replace(/\s+/g, "_");
+  if (STATUS_SET.has(underscored)) return underscored;
+  if (up.includes("SUCCESS")) return "SUCCEEDED";
+  if (up.includes("WAIT")) return "WAITING_PAYMENT";
+  if (up.includes("PENDING")) return "PENDING";
+  if (up.includes("CANCEL")) return "CANCELED";
+  if (up.includes("EXPIRE")) return "EXPIRED";
+  if (up.includes("FAIL")) return "FAILED";
+  if (up.includes("REFUND")) return "REFUND";
+  if (up.includes("AUTHOR")) return "AUTHORIZED";
+  if (up.includes("REQUIRES")) return "REQUIRES_ACTION";
+  if (up.includes("ACCEPT")) return "ACCEPTING_PAYMENTS";
+  return underscored; // fallback
+};
+
 interface Props {
   /** Prefill reference id from URL (?ref=123) */
   initialRef?: string;
@@ -74,11 +116,22 @@ export default function InvoiceClient({
   autoFetch = true,
   enablePolling = true,
 }: Props) {
+  // Auth state
+  const { loading: authLoading, authenticated } = useAuthStatus();
+
   const [refid, setRefid] = useState(initialRef);
   const [loading, setLoading] = useState(false);
   const [polling, setPolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
+
+  // List state (for authenticated users)
+  const [listLoading, setListLoading] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
+  const [expandedRef, setExpandedRef] = useState<string | null>(null);
+  const [perPage, setPerPage] = useState<number>(10);
+  const [statusFilter, setStatusFilter] = useState<string>(""); // empty means all
 
   const abortRef = useRef<AbortController | null>(null);
   const pollTimer = useRef<NodeJS.Timeout | null>(null);
@@ -110,7 +163,7 @@ export default function InvoiceClient({
       }
 
       try {
-        const res = await apiFetch(joinUrl(API_BASE, `api/v1/invoice/${ref}`), {
+        const res = await apiFetch(`api/v1/invoice/${ref}`, {
           headers: { Accept: "application/json" },
           cache: "no-store",
           signal: ac.signal,
@@ -149,9 +202,44 @@ export default function InvoiceClient({
     [refid, invoice, enablePolling]
   );
 
-  // Auto-fetch when initialRef provided
+  // Fetch list of transactions for authenticated users
+  const fetchTransactions = useCallback(async () => {
+    setListLoading(true);
+    setListError(null);
+    try {
+      const qs = new URLSearchParams();
+      const pp = Math.max(1, Math.min(50, Number.isFinite(perPage as unknown as number) ? perPage : 10));
+      qs.set("per_page", String(pp));
+      if (statusFilter) qs.set("status", statusFilter);
+      const url = `api/v1/invoice${qs.toString() ? `?${qs.toString()}` : ""}`;
+      const res = await apiFetch(url, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Gagal memuat daftar transaksi");
+      const json = await res.json();
+      const list: TransactionSummary[] = (json?.data?.transactions ?? []) as TransactionSummary[];
+      setTransactions(Array.isArray(list) ? list : []);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal memuat daftar transaksi.";
+      setListError(message);
+      setTransactions([]);
+    } finally {
+      setListLoading(false);
+    }
+  }, [perPage, statusFilter]);
+
+  // Auto-fetch when initialRef provided (guest mode) or pre-expand in auth mode
   useEffect(() => {
-    if (initialRef && autoFetch) {
+    if (authenticated) {
+      // Load list; if initial ref exists, expand after list fetched
+      fetchTransactions();
+      if (initialRef) {
+        setExpandedRef(initialRef);
+        // Preload detail for the initialRef
+        fetchInvoice(initialRef);
+      }
+    } else if (initialRef && autoFetch) {
       fetchInvoice(initialRef);
     }
     return () => {
@@ -159,7 +247,14 @@ export default function InvoiceClient({
       abortRef.current?.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialRef, autoFetch]);
+  }, [initialRef, autoFetch, authenticated, fetchTransactions]);
+
+  // Refetch list when filters change (authenticated only)
+  useEffect(() => {
+    if (authenticated) {
+      fetchTransactions();
+    }
+  }, [authenticated, perPage, statusFilter, fetchTransactions]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,6 +262,45 @@ export default function InvoiceClient({
   };
 
   const handleRefresh = () => fetchInvoice();
+
+  // Toggle expand an item and fetch its detail
+  const handleToggleExpand = (ref: string) => {
+    setError(null);
+    if (expandedRef === ref) {
+      setExpandedRef(null);
+      setInvoice(null);
+      clearPoll();
+      return;
+    }
+    setExpandedRef(ref);
+    setRefid(ref);
+    fetchInvoice(ref);
+  };
+
+  // Download PDF
+  const handleDownloadPdf = async (referenceId: string) => {
+    try {
+      const res = await apiFetch(`api/v1/invoice/${referenceId}/pdf`,
+        {
+          headers: { Accept: "application/pdf" },
+          cache: "no-store",
+        }
+      );
+      if (!res.ok) throw new Error("Gagal mengunduh PDF");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${referenceId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gagal mengunduh PDF.";
+      setError(msg);
+    }
+  };
 
   return (
     <Wrapper>
@@ -181,6 +315,110 @@ export default function InvoiceClient({
             </h1>
           </div>
         </header>
+        {/* Authenticated view: list of transactions with expandable detail header */}
+        {!authLoading && authenticated && (
+          <div className="space-y-6">
+            {listError && (
+              <div className="bg-red-500/10 text-red-500 dark:text-red-400 border border-red-300 dark:border-red-500/30 px-4 py-3 rounded-lg" role="alert">
+                {listError}
+              </div>
+            )}
+            <Card className="shadow-lg">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Riwayat Transaksi</h2>
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="statusFilter" className="text-sm text-gray-700 dark:text-gray-300">Status</label>
+                    <select
+                      id="statusFilter"
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1"
+                    >
+                      <option value="">Semua</option>
+                      {KNOWN_STATUSES.map((st) => (
+                        <option key={st} value={st}>{readableStatus(st)}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="perPage" className="text-sm text-gray-700 dark:text-gray-300">Per Page</label>
+                    <select
+                      id="perPage"
+                      value={perPage}
+                      onChange={(e) => setPerPage(parseInt(e.target.value) || 10)}
+                      className="text-sm rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1"
+                    >
+                      {[10, 20, 30, 40, 50].map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchTransactions}
+                    disabled={listLoading}
+                    className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-md border border-primary-500/40 text-primary-700 dark:text-primary-300 hover:bg-primary-500/10 dark:hover:bg-primary-500/20 transition disabled:opacity-50"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${listLoading ? "animate-spin" : ""}`} />
+                    Terapkan
+                  </button>
+                </div>
+              </div>
+              {listLoading ? (
+                <div className="py-8 text-center text-gray-600 dark:text-gray-400">Memuat transaksi...</div>
+              ) : transactions.length === 0 ? (
+                <div className="py-8 text-center text-gray-600 dark:text-gray-400">Belum ada transaksi.</div>
+              ) : (
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {transactions.map((tx) => {
+                    const open = expandedRef === tx.reference_id;
+                    return (
+                      <div key={tx.reference_id}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleExpand(tx.reference_id)}
+                          className="w-full flex items-center justify-between text-left py-3"
+                          aria-expanded={open}
+                          aria-controls={`invoice-panel-${tx.reference_id}`}
+                          id={`invoice-header-${tx.reference_id}`}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                            <span className="font-semibold text-gray-900 dark:text-white">{tx.reference_id}</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{fmtDateTime(tx.created_at)}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {(() => { const code = normalizeStatus(tx.status || ""); return (
+                              <span className={`px-3 py-1 rounded-full text-xs border ${statusColor(code)}`}>
+                                {STATUS_SET.has(code) ? readableStatus(code) : (tx.status || code)}
+                              </span>
+                            ); })()}
+                            <ChevronDown className={`h-5 w-5 text-primary-500 transition-transform ${open ? "rotate-180" : ""}`} />
+                          </div>
+                        </button>
+                        {open && (
+                          <div id={`invoice-panel-${tx.reference_id}`} aria-labelledby={`invoice-header-${tx.reference_id}`} className="pb-4">
+                            {/* When expanded, fetchInvoice loads details; card renders below for both modes */}
+                            {loading && !invoice && <InvoiceSkeleton />}
+                            {error && (
+                              <div className="bg-red-500/10 text-red-500 dark:text-red-400 border border-red-300 dark:border-red-500/30 px-4 py-3 rounded-lg mb-2" role="alert">
+                                {error}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {/* Guest view */}
+        {(!authLoading && !authenticated) && (
+          <>
 
         {/* Search form */}
         <form
@@ -190,15 +428,15 @@ export default function InvoiceClient({
           aria-label="Cari Invoice"
         >
           <label htmlFor="refid" className="sr-only">Reference ID</label>
-          <input
+          <Input
             id="refid"
             type="text"
             value={refid}
             onChange={(e) => setRefid(e.target.value)}
             placeholder="Masukkan Reference ID..."
-            className="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30 transition"
             autoComplete="off"
             aria-label="Reference ID"
+            containerClassName="flex-1"
           />
           <button
             type="submit"
@@ -225,9 +463,12 @@ export default function InvoiceClient({
         {/* Loading (first load) */}
         {loading && !invoice && <InvoiceSkeleton />}
 
+          </>
+        )}
+
         {/* Invoice Detail */}
         {invoice && (
-          <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 space-y-6 shadow-lg transition-colors" aria-labelledby="invoice-detail-heading">
+          <Card className="space-y-6 shadow-lg" aria-labelledby="invoice-detail-heading">
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -236,14 +477,24 @@ export default function InvoiceClient({
                   {invoice.reference_id}
                 </p>
               </div>
-              <span
-                className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium border ${statusColor(
-                  invoice.status
-                )}`}
-                aria-label={`Status: ${readableStatus(invoice.status)}`}
-              >
-                {readableStatus(invoice.status)}
-              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleDownloadPdf(invoice.reference_id)}
+                  className="inline-flex cursor-pointer items-center gap-2 text-sm px-3 py-2 rounded-md border border-primary-500/40 text-primary-700 dark:text-primary-300 hover:bg-primary-500/10 dark:hover:bg-primary-500/20 transition"
+                >
+                  <FileDown className="h-4 w-4" />
+                  Download PDF
+                </button>
+                <span
+                  className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium border ${statusColor(
+                    invoice.status
+                  )}`}
+                  aria-label={`Status: ${readableStatus(invoice.status)}`}
+                >
+                  {readableStatus(invoice.status)}
+                </span>
+              </div>
             </header>
 
             {/* Info Grid */}
@@ -381,7 +632,7 @@ export default function InvoiceClient({
                 </button>
               </div>
             )}
-          </section>
+          </Card>
         )}
       </main>
     </Wrapper>

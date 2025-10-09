@@ -4,13 +4,16 @@ export interface CartPackageEntry {
   readonly id: string;
 }
 
+import type { discount_applied as DiscountApplied } from "@/components/checkout/types/checkout";
+
 export interface CartPackage {
   readonly name: string;
   readonly image: string;
   readonly price: number;              // harga per unit
   readonly amount?: string;            // nominal / durasi (opsional)
   readonly items: CartPackageEntry[];  // bisa kosong
-  readonly discount_applied?: number;  // undefined = tidak ada diskon
+  // bisa berupa angka (legacy) atau object normalisasi dengan detail diskon
+  readonly discount_applied?: number | DiscountApplied | null;  // undefined/null = tidak ada diskon
 }
 
 export interface BaseCartItem {

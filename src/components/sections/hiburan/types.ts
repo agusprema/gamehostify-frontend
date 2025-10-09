@@ -21,5 +21,5 @@ export interface Hiburan {
   placeholder: string;
   description: string;
   is_popular?: boolean;
-  packages: HiburanPackage[];
+  total_packages: number;
 }

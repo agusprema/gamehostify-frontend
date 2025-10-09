@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Input from "@/components/ui/Input";
 
 export interface ChannelExtraFieldsProps {
   selectedChannel: string;
@@ -204,30 +205,19 @@ const ChannelExtraFields: React.FC<ChannelExtraFieldsProps> = ({
         const hasErr = !!mergedErrors[name];
         return (
           <div key={name}>
-            <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {label}
-            </label>
-            <input
+            <Input
               id={name}
               name={name}
               type={type || "text"}
               required
               value={val}
               onChange={(e) => handleChannelPropertyChange(name, e.target.value)}
-              className={`w-full rounded-lg px-4 py-3 border text-sm focus:outline-none focus:ring-1 transition
-                bg-white text-black border-gray-300 focus:ring-primary-500
-                dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:focus:ring-primary-500
-                ${hasErr ? "border-red-500 focus:ring-red-500 dark:border-red-500" : ""}
-              `}
               placeholder={placeholder}
               aria-invalid={hasErr}
               aria-describedby={hasErr ? `${name}-error` : undefined}
+              label={label}
+              error={hasErr ? String(mergedErrors[name]) : undefined}
             />
-            {hasErr && (
-              <p id={`${name}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
-                {mergedErrors[name]}
-              </p>
-            )}
           </div>
         );
       })}

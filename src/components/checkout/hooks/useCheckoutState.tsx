@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { apiFetch } from "@/lib/apiFetch";
-import { joinUrl } from "@/lib/url";
+import { useAuthStatus } from "@/hooks/useAuthStatus";
 import type {
   CheckoutStep,
   CustomerFormValues,
@@ -13,6 +13,8 @@ import type {
   CheckoutTransaction,
 } from "../types/checkout";
 import { buildErrorObjects, updateNestedProps } from "../utils/checkout";
+import logger from "@/lib/logger";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface UseCheckoutStateOpts {
   initialStatus?: "success" | "cancel" | "failed" | "expired";
@@ -24,6 +26,8 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
   const { initialStatus, initialReferenceId } = opts;
   const { cart, fetchCart } = useCart();
   const router = useRouter();
+  const { authenticated } = useAuthStatus();
+  const toast = useToast();
 
   // ---------------------------- State ----------------------------
   const [step, setStep] = useState<CheckoutStep>("loading");
@@ -81,7 +85,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
           (async () => {
             try {
               const res = await apiFetch(
-                joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/payment/methods'),
+                'api/v1/payment/methods',
                 { headers: { Accept: "application/json" } }
               );
               const json = await res.json();
@@ -99,12 +103,11 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
                   }
                 }
               } else if (!cancelled) {
-                // Show error to user (replace with toast if available)
-                alert("Gagal memuat metode pembayaran. Silakan coba lagi.");
+                toast.error("Gagal memuat metode pembayaran. Silakan coba lagi.");
               }
             } catch (err) {
-              console.error("Failed to load payment methods", err);
-              if (!cancelled) alert("Gagal memuat metode pembayaran. Silakan cek koneksi Anda.");
+              logger.error("Failed to load payment methods", err);
+              if (!cancelled) toast.error("Gagal memuat metode pembayaran. Silakan cek koneksi Anda.");
             } finally {
               if (!cancelled) setLoadingPaymentMethods(false);
             }
@@ -113,16 +116,16 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
             try {
               await fetchCart();
             } catch (err) {
-              console.error("Failed to load cart", err);
-              if (!cancelled) alert("Gagal memuat keranjang. Silakan refresh halaman.");
+              logger.error("Failed to load cart", err);
+              if (!cancelled) toast.error("Gagal memuat keranjang. Silakan refresh halaman.");
             } finally {
               if (!cancelled) setLoadingCart(false);
             }
           })(),
         ]);
       } catch (err) {
-        console.error("Initial load error", err);
-        alert("Terjadi kesalahan saat inisialisasi checkout. Silakan refresh halaman.");
+        logger.error("Initial load error", err);
+        toast.error("Terjadi kesalahan saat inisialisasi checkout. Silakan refresh halaman.");
       }
     }
 
@@ -171,7 +174,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
       if (!cartToken) throw new Error("Cart token missing");
 
       const res = await apiFetch(
-        joinUrl(process.env.BACKEND_API_BASE_URL, 'api/v1/payment/invoice'),
+        'api/v1/payment/invoice',
         {
           method: "POST",
           headers: {
@@ -179,17 +182,22 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
             "Content-Type": "application/json",
             "X-Cart-Token": cartToken,
           },
-          body: JSON.stringify({
-            cart_token: cartToken,
-            payment_method: selectedMethod,
-            channel_code: selectedChannel,
-            customer: {
-              name: customerInfo.name,
-              email: customerInfo.email,
-              phone_number: customerInfo.phone,
-            },
-            channel_properties: channelProperties,
-          }),
+          body: JSON.stringify((() => {
+            const payload: Record<string, unknown> = {
+              cart_token: cartToken,
+              payment_method: selectedMethod,
+              channel_code: selectedChannel,
+              channel_properties: channelProperties,
+            };
+            if (!authenticated) {
+              payload.customer = {
+                name: customerInfo.name,
+                email: customerInfo.email,
+                phone_number: customerInfo.phone,
+              };
+            }
+            return payload;
+          })()),
         }
       );
 
@@ -210,17 +218,17 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
         setOrderId(json.data.reference_id);
         setStep("processing");
       } else {
-        alert("Payment failed. Please try again.");
+        toast.error("Pembayaran gagal. Silakan coba lagi.");
         setStep("payment");
       }
     } catch (err) {
-      console.error(err);
-      alert("Payment error, try again.");
+      logger.error(err);
+      toast.error("Terjadi kesalahan pembayaran, coba lagi.");
       setStep("payment");
     } finally {
       setIsPaying(false);
     }
-  }, [selectedMethod, selectedChannel, customerInfo, channelProperties]);
+  }, [selectedMethod, selectedChannel, customerInfo, channelProperties, authenticated]);
 
   // ---------------------------- Memo API ----------------------------
   return useMemo(

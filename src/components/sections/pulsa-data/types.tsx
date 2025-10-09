@@ -21,7 +21,7 @@ export interface Operator {
   placeholder: string;
   description: string;
   is_popular?: boolean;
-  packages: OperatorPackage[];
+  total_packages: number;
 }
 
 export interface PulsaTopUpProps {

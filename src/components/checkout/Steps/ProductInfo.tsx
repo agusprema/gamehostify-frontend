@@ -4,6 +4,8 @@ import React from "react";
 import Image from "next/image";
 import { Gamepad2, Loader2, Trash2 } from "lucide-react";
 import { CartItem } from "@/components/checkout/types/checkout";
+import Input from "@/components/ui/Input";
+import Card from "@/components/ui/Card";
 
 interface ProductInfoProps {
   items: CartItem[];
@@ -34,10 +36,7 @@ function ProductInfo({
       </p>
       <div className="space-y-4">
         {items.map((item, i) => (
-          <div
-            key={i}
-            className="bg-white dark:bg-gray-800/50 rounded-lg p-4 border border-gray-300 dark:border-gray-600"
-          >
+          <Card key={i} className="p-4">
             <div className="flex items-center mb-3">
               <Image
                 src={item.image}
@@ -70,7 +69,7 @@ function ProductInfo({
                     </div>
 
                     <div className="flex gap-2">
-                      <input
+                      <Input
                         type="text"
                         disabled={!isEditing}
                         value={isEditing ? editedTarget : entry.target}
@@ -82,7 +81,6 @@ function ProductInfo({
                             setEditingId(null);
                           }
                         }}
-                        className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 disabled:bg-gray-100 disabled:dark:bg-gray-700"
                         placeholder="Enter your game account ID or username"
                       />
 
@@ -134,7 +132,7 @@ function ProductInfo({
                 );
               })}
             </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>

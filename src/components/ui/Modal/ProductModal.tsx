@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Package as PackageIcon, User, X } from "lucide-react";
+import { Package as PackageIcon, User, X, Loader2 } from "lucide-react";
 import BaseModal from "./BaseModal";
 // FormError handled by TextInput where used
 import { CommonPackage, PackageGroup } from "./types";
@@ -45,6 +45,7 @@ interface ProductModalProps {
   submitting?: boolean;
   onConfirm: () => void;
   confirmText?: string;
+  packagesLoading?: boolean;
 }
 
 export default function ProductModal({
@@ -64,6 +65,7 @@ export default function ProductModal({
   submitting,
   onConfirm,
   confirmText = "Add to Cart",
+  packagesLoading = false,
 }: ProductModalProps) {
   const titleId = React.useId();
 
@@ -119,16 +121,22 @@ export default function ProductModal({
               />
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2 pt-2 custom-scrollbar">
-              {activeGroup?.packages?.map((pkg) => (
-                <PackageCard
-                  key={pkg.id}
-                  pkg={pkg}
-                  selected={selectedPackage?.id === pkg.id}
-                  onClick={() => onSelectPackage(pkg)}
-                />
-              ))}
-            </div>
+            {packagesLoading ? (
+              <div className="flex items-center justify-center h-40 text-primary-600 dark:text-primary-400">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Memuat paket...
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2 pt-2 custom-scrollbar">
+                {activeGroup?.packages?.map((pkg) => (
+                  <PackageCard
+                    key={pkg.id}
+                    pkg={pkg}
+                    selected={selectedPackage?.id === pkg.id}
+                    onClick={() => onSelectPackage(pkg)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -191,16 +199,22 @@ export default function ProductModal({
             />
           )}
 
-          <div className="max-h-72 overflow-y-auto pr-1 custom-scrollbar mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {activeGroup?.packages?.map((p) => (
-              <PackageCard
-                key={p.id}
-                pkg={p}
-                selected={selectedPackage?.id === p.id}
-                onClick={() => onSelectPackage(p)}
-              />
-            ))}
-          </div>
+          {packagesLoading ? (
+            <div className="flex items-center justify-center h-32 text-primary-600 dark:text-primary-400 mb-6">
+              <Loader2 className="h-5 w-5 animate-spin mr-2" /> Memuat paket...
+            </div>
+          ) : (
+            <div className="max-h-72 overflow-y-auto pr-1 custom-scrollbar mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {activeGroup?.packages?.map((p) => (
+                <PackageCard
+                  key={p.id}
+                  pkg={p}
+                  selected={selectedPackage?.id === p.id}
+                  onClick={() => onSelectPackage(p)}
+                />
+              ))}
+            </div>
+          )}
 
           <button
             onClick={onConfirm}
