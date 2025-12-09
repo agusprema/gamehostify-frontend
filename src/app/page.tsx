@@ -14,6 +14,8 @@ import type {
   EntertainmentsData,
 } from "@/lib/apiTypes";
 
+export const dynamic = "force-dynamic";
+
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
 
