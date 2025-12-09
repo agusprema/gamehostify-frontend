@@ -62,6 +62,10 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns,
     formats: ["image/avif", "image/webp"],
+    // Disable optimization in development to allow private/backend hosts
+    // like http://laravel.test and external images (e.g. Pexels) in
+    // restricted environments to load directly in the browser.
+    unoptimized: process.env.NODE_ENV === "development",
   },
 };
 

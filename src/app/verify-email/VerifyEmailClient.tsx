@@ -16,27 +16,16 @@ export default function VerifyEmailClient() {
 
   useEffect(() => {
     async function run() {
-      const id = searchParams.get("id");
-      const hash = searchParams.get("hash");
-      const expires = searchParams.get("expires") || undefined;
-      const signature = searchParams.get("signature") || undefined;
+      const signedUrl = searchParams.get("url");
 
-      if (!id || !hash) {
+      if (!signedUrl) {
         setStatus("error");
         setMessage("Tautan verifikasi tidak valid.");
         return;
       }
 
-      const qs = new URLSearchParams();
-      if (expires) qs.set("expires", expires);
-      if (signature) qs.set("signature", signature);
-      const query = qs.toString();
-
       try {
-        await apiRequest<unknown>(
-          `/api/auth/email/verify/${encodeURIComponent(
-            id
-          )}/${encodeURIComponent(hash)}${query ? `?${query}` : ""}`,
+        await apiRequest<unknown>(signedUrl,
           {
             method: "GET",
             headers: {
@@ -81,4 +70,3 @@ export default function VerifyEmailClient() {
     </main>
   );
 }
-
