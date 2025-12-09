@@ -6,9 +6,12 @@ import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import { setFieldErrors } from '@/utils/rhf/setFieldErrors';
 import { isValidPhoneNumber } from 'react-phone-number-input';
-import { Mail, LockKeyhole, User, Phone as PhoneIcon } from 'lucide-react';
+import { Mail, LockKeyhole, User } from 'lucide-react';
 import { register as registerApi } from '@/lib/auth';
 import "react-phone-number-input/style.css";
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
+import Form from '@/components/ui/Form';
 
 // Lazy-load heavy phone input to shrink initial bundle
 const PhoneInput = dynamic(() => import('react-phone-number-input'), { ssr: false });
@@ -17,7 +20,7 @@ type FormValues = {
   name: string;
   email: string;
   password: string;
-  password_confirmation: string; // <-- added
+  password_confirmation: string;
   phone: string;
   birth_date: string; // YYYY-MM-DD
   gender: 'MALE' | 'FEMALE' | 'OTHER';
@@ -37,7 +40,7 @@ export default function RegisterForm() {
       name: '',
       email: '',
       password: '',
-      password_confirmation: '', // <-- added
+      password_confirmation: '',
       phone: '',
       birth_date: '',
       gender: 'MALE',
@@ -54,16 +57,16 @@ export default function RegisterForm() {
         name: data.name,
         email: data.email,
         password: data.password,
-        password_confirmation: data.password_confirmation, // <-- added
+        password_confirmation: data.password_confirmation,
         phone: data.phone,
         birth_date: data.birth_date,
         gender: data.gender,
       });
       router.push('/login');
-    } catch (err: any) {
-      // Tangkap error validasi dari backend (terstandardisasi lewat apiRequest): { fields, message }
-      const fields = err?.fields ?? err?.errors ?? null;
-      const message = err?.message || 'Registrasi gagal';
+    } catch (err: unknown) {
+      const e = err as { fields?: Record<string, string | string[] | undefined>; errors?: Record<string, string | string[] | undefined>; message?: string };
+      const fields = e?.fields ?? e?.errors ?? null;
+      const message = e?.message || 'Registrasi gagal';
 
       const known: Array<keyof FormValues> = [
         'name',
@@ -80,55 +83,38 @@ export default function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 grid-cols-1 grid md:grid-cols-2 gap-2">
-      {formError && (
-        <div className="col-span-2 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-          {formError}
-        </div>
-      )}
+    <Form onSubmit={handleSubmit(onSubmit)} error={formError} className="grid grid-cols-1 md:grid-cols-2 gap-2">
       {/* Nama */}
       <div className="col-span-2">
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">
-          Nama Lengkap
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Nama kamu"
-            className="w-full rounded-xl px-4 py-3 pl-10 border border-gray-300 bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition"
-            {...register('name', {
-              required: 'Nama wajib diisi',
-              minLength: { value: 3, message: 'Minimal 3 karakter' },
-              maxLength: { value: 255, message: 'Maksimal 255 karakter' },
-            })}
-          />
-          <span className="absolute inset-y-0 left-3 flex items-center text-primary-500">
-            <User className="w-5" />
-          </span>
-        </div>
-        {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
+        <Input
+          label="Nama Lengkap"
+          type="text"
+          placeholder="Nama kamu"
+          leftIcon={<User className="w-5" />}
+          error={errors.name?.message}
+          {...register('name', {
+            required: 'Nama wajib diisi',
+            minLength: { value: 3, message: 'Minimal 3 karakter' },
+            maxLength: { value: 255, message: 'Maksimal 255 karakter' },
+          })}
+        />
       </div>
 
       {/* Email */}
       <div className="col-span-1">
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">Email</label>
-        <div className="relative">
-          <input
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            className="w-full rounded-xl px-4 py-3 pl-10 border border-gray-300 bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition"
-            {...register('email', {
-              required: 'Email wajib diisi',
-              pattern: { value: /\S+@\S+\.\S+/, message: 'Format email tidak valid' },
-              maxLength: { value: 255, message: 'Maksimal 255 karakter' },
-            })}
-          />
-          <span className="absolute inset-y-0 left-3 flex items-center text-primary-500">
-            <Mail className="w-5" />
-          </span>
-        </div>
-        {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+        <Input
+          label="Email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          leftIcon={<Mail className="w-5" />}
+          error={errors.email?.message}
+          {...register('email', {
+            required: 'Email wajib diisi',
+            pattern: { value: /\S+@\S+\.\S+/, message: 'Format email tidak valid' },
+            maxLength: { value: 255, message: 'Maksimal 255 karakter' },
+          })}
+        />
       </div>
 
       {/* Nomor Telepon (Indonesia +62) */}
@@ -172,92 +158,66 @@ export default function RegisterForm() {
 
       {/* Tanggal Lahir */}
       <div className="col-span-1">
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">
-          Tanggal Lahir
-        </label>
-        <div className="relative">
-          <input
-            type="date"
-            max={new Date().toISOString().slice(0, 10)}
-            min="1900-01-01"
-            className="w-full rounded-xl px-4 py-3 border border-gray-300 bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition"
-            {...register('birth_date', {
-              required: 'Tanggal Lahir wajib diisi',
-              validate: (v) => {
-                if (v < '1900-01-01') return 'Tanggal terlalu lama';
-                if (v > new Date().toISOString().slice(0, 10)) return 'Tidak boleh di masa depan';
-                return true;
-              },
-            })}
-          />
-        </div>
-        {errors.birth_date && (
-          <p className="mt-1 text-xs text-red-500">{errors.birth_date.message as string}</p>
-        )}
+        <Input
+          label="Tanggal Lahir"
+          type="date"
+          max={new Date().toISOString().slice(0, 10)}
+          min="1900-01-01"
+          error={errors.birth_date?.message as string | undefined}
+          {...register('birth_date', {
+            required: 'Tanggal Lahir wajib diisi',
+            validate: (v) => {
+              if (v < '1900-01-01') return 'Tanggal terlalu lama';
+              if (v > new Date().toISOString().slice(0, 10)) return 'Tidak boleh di masa depan';
+              return true;
+            },
+          })}
+        />
       </div>
 
       {/* Gender */}
       <div className="col-span-1">
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">Gender</label>
-        <div className="relative">
-          <select
-            className="w-full rounded-xl px-4 py-3 border border-gray-300 bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition"
-            {...register('gender', {
-              required: 'Gender wajib diisi',
-            })}
-          >
-            <option value="MALE">Male</option>
-            <option value="FEMALE">Female</option>
-            <option value="OTHER">Other</option>
-          </select>
-        </div>
-        {errors.gender && <p className="mt-1 text-xs text-red-500">{errors.gender.message}</p>}
+        <Select
+          label="Gender"
+          error={errors.gender?.message}
+          {...register('gender', { required: 'Gender wajib diisi' })}
+        >
+          <option value="MALE">Male</option>
+          <option value="FEMALE">Female</option>
+          <option value="OTHER">Other</option>
+        </Select>
       </div>
 
       {/* Password */}
       <div className="col-span-1">
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">Password</label>
-        <div className="relative">
-          <input
-            type="password"
-            autoComplete="new-password"
-            placeholder="••••••••"
-            className="w-full rounded-xl px-4 py-3 pl-10 border border-gray-300 bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition"
-            {...register('password', {
-              required: 'Password wajib diisi',
-              minLength: { value: 8, message: 'Minimal 8 karakter' },
-            })}
-          />
-          <span className="absolute inset-y-0 left-3 flex items-center text-primary-500">
-            <LockKeyhole className="w-5" />
-          </span>
-        </div>
-        {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
+        <Input
+          label="Password"
+          type="password"
+          autoComplete="new-password"
+          placeholder="••••••••"
+          leftIcon={<LockKeyhole className="w-5" />}
+          error={errors.password?.message}
+          {...register('password', {
+            required: 'Password wajib diisi',
+            minLength: { value: 8, message: 'Minimal 8 karakter' },
+          })}
+        />
       </div>
 
       {/* Konfirmasi Password */}
       <div className="col-span-1">
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">
-          Konfirmasi Password
-        </label>
-        <div className="relative">
-          <input
-            type="password"
-            autoComplete="new-password"
-            placeholder="Ulangi password"
-            className="w-full rounded-xl px-4 py-3 pl-10 border border-gray-300 bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition"
-            {...register('password_confirmation', {
-              required: 'Konfirmasi password wajib diisi',
-              validate: (v) => (v === pwd ? true : 'Konfirmasi password tidak sama'),
-            })}
-          />
-          <span className="absolute inset-y-0 left-3 flex items-center text-primary-500">
-            <LockKeyhole className="w-5" />
-          </span>
-        </div>
-        {errors.password_confirmation && (
-          <p className="mt-1 text-xs text-red-500">{errors.password_confirmation.message}</p>
-        )}
+        <Input
+          label="Konfirmasi Password"
+          type="password"
+          autoComplete="new-password"
+          placeholder="Ulangi password"
+          leftIcon={<LockKeyhole className="w-5" />}
+          error={errors.password_confirmation?.message}
+          {...register('password_confirmation', {
+            required: 'Konfirmasi password wajib diisi',
+            validate: (v) => (v === pwd ? true : 'Konfirmasi password tidak sama'),
+          })}
+        />
       </div>
 
       <button
@@ -265,8 +225,8 @@ export default function RegisterForm() {
         disabled={isSubmitting}
         className="cursor-pointer w-full col-span-2 inline-flex items-center justify-center rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-60 px-4 py-3 text-white font-semibold shadow-md transition"
       >
-        {isSubmitting ? 'Memproses…' : 'Daftar'}
+        {isSubmitting ? 'Memproses.' : 'Daftar'}
       </button>
-    </form>
+    </Form>
   );
 }

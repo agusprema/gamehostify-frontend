@@ -4,6 +4,7 @@ import PageTransition from '@/components/animations/PageTransition';
 import { Metadata } from 'next';
 import { fetchJson } from '@/lib/fetchJson';
 import { joinUrl } from '@/lib/url';
+import type { ApiResponse, GamesData } from '@/lib/apiTypes';
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
@@ -74,13 +75,11 @@ export const viewport = {
 
 
 export default async function TopUpPage() {
-  const API = process.env.BACKEND_API_BASE_URL ?? '';
-
   const [jsonGames] = await Promise.all([
-    fetchJson(joinUrl(API, 'api/v1/games?per_page=24'), { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
+    fetchJson<ApiResponse<GamesData>>('api/v1/games?per_page=24', { headers: { Accept: 'application/json' }, next: { revalidate: 3600 } }),
   ]);
 
-  const data = jsonGames?.data ?? {};
+  const data = (jsonGames?.data ?? {}) as Partial<GamesData>;
   const games = data.games ?? [];
   const nextCursor = data.next_cursor ?? null;
   const hasMore = !!data.has_more;

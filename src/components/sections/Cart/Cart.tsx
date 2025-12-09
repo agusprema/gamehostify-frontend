@@ -15,6 +15,10 @@ import { useCart } from "@/contexts/CartContext";
 import { getCartToken } from "@/lib/cart/getCartToken";
 import { apiFetch } from "@/lib/apiFetch";
 import { joinUrl } from "@/lib/url";
+import type { CartItem as NormalizedCartItem } from "@/components/checkout/types/checkout";
+import type { BaseCartItem } from "./types";
+import logger from "@/lib/logger";
+import { useToast } from "@/components/ui/ToastProvider";
 
 // --- Dynamic imports (code splitting) ---
 const CartHeader = dynamic(() => import("./CartHeader"), { ssr: false });
@@ -33,6 +37,7 @@ const EmptyCart = dynamic(() => import("./EmptyCart"), {
 const LocalSkeleton = memo(() => (
   <div className="rounded-xl border border-gray-300 dark:border-gray-700/50 bg-gray-100 dark:bg-gray-800/40 h-16 animate-pulse" />
 ));
+LocalSkeleton.displayName = "LocalSkeleton";
 
 // Helper untuk prefetch chunk modul cart saat idle
 const preloadCartChunks = () => {
@@ -52,9 +57,10 @@ interface CartProps {
 
 function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
   const { cart, quantity, fetchCart, fetchQuantity } = useCart();
+  const toast = useToast();
   const [loadingCart, setLoadingCart] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   // Track last successful fetch
   const [lastFetched, setLastFetched] = useState<number>(0);
@@ -128,13 +134,14 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
           await Promise.all([fetchCart(), fetchQuantity()]);
           setLastFetched(Date.now());
         } catch (err) {
-          console.error("Error remove:", err);
+          logger.error("Error remove:", err);
+          toast.error("Gagal menghapus item. Silakan coba lagi.");
         } finally {
           setRemovingId(null);
         }
       });
     },
-    [fetchCart, fetchQuantity, startTransition]
+    [toast, fetchCart, fetchQuantity, startTransition]
   );
 
 
@@ -146,7 +153,7 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
 
   // --- Cart derived state ---
   // Convert CartItem[] to BaseCartItem[] for compatibility
-  const toBaseCartItem = (item: any) => ({
+  const toBaseCartItem = useCallback((item: NormalizedCartItem): BaseCartItem => ({
     name: item.name,
     image: item.image,
     createdAt: item.createdAt || '',
@@ -162,8 +169,8 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
           discount_applied: item.packages.discount_applied ?? undefined,
         }
       : undefined,
-  });
-  const stableItems = useMemo(() => (cart?.items ?? []).map(toBaseCartItem), [cart?.items]);
+  }), []);
+  const stableItems = useMemo(() => (cart?.items ?? []).map(toBaseCartItem), [cart?.items, toBaseCartItem]);
   const deferredItems = useDeferredValue(stableItems);
   const isDeferredPending = stableItems !== deferredItems;
   const formattedTotal = useMemo(() =>

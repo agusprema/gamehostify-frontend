@@ -3,8 +3,6 @@
 import React from "react";
 import { PaymentChannel } from "@/components/checkout/types/checkout";
 import Image from "next/image";
-import { joinUrl } from "@/lib/url";
-import { getPublicBackendBase } from "@/lib/publicBase";
 
 interface PaymentChannelCardProps {
   channel: PaymentChannel;
@@ -32,8 +30,6 @@ const PaymentChannelCard: React.FC<PaymentChannelCardProps> = ({
   const formatRupiah = (value: number) =>
     `Rp${value.toLocaleString("id-ID")}`;
 
-  const logoSrc = joinUrl(getPublicBackendBase(), `storage/${channel.logo}`);
-
   return (
     <div
       className={`border-2 rounded-lg p-3 cursor-pointer flex items-center space-x-3 transition-all shadow-sm
@@ -47,7 +43,7 @@ const PaymentChannelCard: React.FC<PaymentChannelCardProps> = ({
       onClick={() => onSelect(channel.code, category)}
     >
       <Image
-        src={logoSrc}
+        src={channel.logo}
         alt={channel.name}
         width={48}
         height={48}

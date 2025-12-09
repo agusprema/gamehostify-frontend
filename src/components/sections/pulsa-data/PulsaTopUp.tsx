@@ -9,6 +9,8 @@ import { handleApiErrors } from "@/utils/apiErrorHandler";
 import Link from "@/components/ui/Link";
 import { apiFetch } from "@/lib/apiFetch";
 import { joinUrl } from "@/lib/url";
+import logger from "@/lib/logger";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export interface PulsaTopUpProps {
   operators: Operator[];
@@ -17,6 +19,7 @@ export interface PulsaTopUpProps {
 
 const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) => {
   const { fetchCart, fetchQuantity } = useCart();
+  const toast = useToast();
   const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
@@ -54,10 +57,12 @@ const PulsaTopUp: React.FC<PulsaTopUpProps> = ({ operators, isHome = false }) =>
 
       if (json.status === "success") {
         await Promise.all([fetchCart(), fetchQuantity()]);
+        toast.success("Berhasil ditambahkan ke keranjang.");
         setSelectedOperator(null);
       }
     } catch (e) {
-      console.error(e);
+      logger.error(e);
+      toast.error("Gagal menambahkan ke keranjang. Silakan coba lagi.");
     } finally {
       setIsProcessing(false);
     }

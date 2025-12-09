@@ -20,7 +20,8 @@ export interface Game {
   label: string;
   placeholder: string;
   is_popular?: boolean;
-  packages: GamePackage[];
+  total_packages?: number;
+  has_discount: boolean;
 }
 
 export interface GameTopUpProps {

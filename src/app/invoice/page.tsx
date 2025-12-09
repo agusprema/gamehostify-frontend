@@ -1,5 +1,5 @@
 interface Props {
-  searchParams: { ref?: string };
+  searchParams: Promise<{ ref?: string }>;
 }
 
 import { Suspense } from "react";

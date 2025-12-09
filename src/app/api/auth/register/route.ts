@@ -14,6 +14,7 @@ function normalizeBase(url?: string | null) {
 
 const RAW_API_BASE = process.env.BACKEND_API_BASE_URL || process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "";
 const API_BASE = normalizeBase(RAW_API_BASE);
+const BFF_KEY = process.env.BFF_API_KEYS || "";
 
 export async function POST(req: NextRequest) {
   if (!API_BASE) {
@@ -25,15 +26,18 @@ export async function POST(req: NextRequest) {
   const ab = await req.arrayBuffer();
   const body = ab.byteLength ? ab : undefined;
 
-  const headers = new Headers(req.headers);
-  headers.delete("host");
-  headers.delete("content-length");
+  const headers = new Headers();
+  headers.set("Accept", "application/json");
+  const contentType = req.headers.get("content-type");
+  if (contentType) headers.set("Content-Type", contentType);
+  if (BFF_KEY) headers.set("X-BFF-Auth", BFF_KEY);
 
   let upstreamResp: Response;
   try {
     upstreamResp = await fetch(targetUrl, { method: 'POST', headers, body });
-  } catch (err: any) {
-    return NextResponse.json({ status: 'error', message: err?.message || 'Upstream fetch failed' }, { status: 502 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Upstream fetch failed';
+    return NextResponse.json({ status: 'error', message }, { status: 502 });
   }
 
   const isJsonWanted = (req.headers.get('accept') || '').includes('application/json');

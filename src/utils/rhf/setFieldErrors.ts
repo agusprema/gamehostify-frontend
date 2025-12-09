@@ -19,7 +19,7 @@ export function setFieldErrors<TFieldValues extends FieldValues>(
   for (const key of Object.keys(fields)) {
     const target = (map && map[key]) || (known.includes(key as Path<TFieldValues>) ? (key as Path<TFieldValues>) : undefined);
     if (!target) continue;
-    const v = (fields as any)[key];
+    const v = (fields as Record<string, string[] | string | undefined>)[key];
     const msg = Array.isArray(v) ? String(v[0] ?? '') : String(v ?? '');
     if (msg) {
       setError(target, { type: 'server', message: msg });
@@ -28,4 +28,3 @@ export function setFieldErrors<TFieldValues extends FieldValues>(
   }
   return appliedAny;
 }
-

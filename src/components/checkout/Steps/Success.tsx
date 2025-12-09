@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import NextLink from "next/link";
 import {
   CheckCircle,
   XCircle,
@@ -12,30 +13,30 @@ import { CartItem } from "@/components/checkout/types/checkout";
 interface Props {
   orderId: string;
   items: CartItem[];
-  status?: "success" | "cancel" | "failed" | "expired";
+  status?: "SUCCEEDED" | "CANCELED" | "FAILED" | "EXPIRED";
 }
 
 const Success: React.FC<Props> = React.memo(({ orderId, items, status = "success" }) => {
   let icon = <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-6" aria-hidden="true" />;
   let title = "Payment Successful!";
   let message = "Your order has been processed successfully.";
-  let textColor = "text-gray-600 dark:text-gray-400";
+  const textColor = "text-gray-600 dark:text-gray-400";
   let orderNote =
     items.length > 0
       ? "Game credits will be delivered to your account soon."
       : "You will receive a confirmation email shortly.";
 
-  if (status === "cancel") {
+  if (status === "CANCELED") {
     icon = <XCircle className="h-16 w-16 text-yellow-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Cancelled";
     message = "You cancelled the payment process.";
     orderNote = "You can try again or choose another payment method.";
-  } else if (status === "failed") {
+  } else if (status === "FAILED") {
     icon = <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Failed";
     message = "We couldn’t process your payment.";
     orderNote = "Please check your payment method or try again.";
-  } else if (status === "expired") {
+  } else if (status === "EXPIRED") {
     icon = <Clock className="h-16 w-16 text-orange-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Expired";
     message = "The payment session has expired.";
@@ -59,17 +60,17 @@ const Success: React.FC<Props> = React.memo(({ orderId, items, status = "success
 
       <p className={`${textColor} mb-6`}>{orderNote}</p>
 
-      <a
+      <NextLink
         href="/"
         className="inline-block cursor-pointer bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-3 rounded-lg font-semibold transition-all"
         aria-label="Continue Shopping"
-        tabIndex={0}
-        role="button"
       >
         Continue Shopping
-      </a>
+      </NextLink>
     </section>
   );
 });
+
+Success.displayName = "Success";
 
 export default Success;

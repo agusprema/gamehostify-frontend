@@ -3,6 +3,8 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
 import { Category } from "./types";
+import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
 
 interface GameFilterBarProps {
   search: string;
@@ -25,19 +27,11 @@ const GameFilterBar: React.FC<GameFilterBarProps> = ({
     <section className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 mx-4" aria-label="Game Filter Bar" role="search">
       {/* Search Input */}
       <div className="relative w-full md:w-1/2" role="searchbox">
-        <input
+        <Input
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Cari game..."
-          className="
-            w-full rounded-lg border border-gray-300 dark:border-gray-700 
-            bg-white dark:bg-gray-900
-            px-4 py-2 text-gray-800 dark:text-white
-            placeholder-gray-400 dark:placeholder-gray-500
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-500 
-            focus:outline-none
-          "
           aria-label="Cari game"
         />
         {isProcessing && (
@@ -47,16 +41,9 @@ const GameFilterBar: React.FC<GameFilterBarProps> = ({
 
       {/* Category Dropdown */}
       <div className="w-full md:w-1/4">
-        <select
+        <Select
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="
-            w-full rounded-lg border border-gray-300 dark:border-gray-700
-            bg-white dark:bg-gray-900
-            px-4 py-2 text-gray-800 dark:text-white
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-500 
-            focus:outline-none
-          "
           aria-label="Pilih kategori game"
         >
           <option value="">Semua Kategori</option>
@@ -65,7 +52,7 @@ const GameFilterBar: React.FC<GameFilterBarProps> = ({
               {cat.value}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
     </section>
   );

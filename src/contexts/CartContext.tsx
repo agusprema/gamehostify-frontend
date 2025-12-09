@@ -12,6 +12,7 @@ import React, {
 import { getCartToken } from '@/lib/cart/getCartToken';
 import { apiFetch } from '@/lib/apiFetch';
 import { joinUrl } from '@/lib/url';
+import logger from '@/lib/logger';
 import {
   CartData,
   CartItem,
@@ -135,7 +136,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (err) {
-      console.error('fetchCart error:', err);
+      logger.error('fetchCart error:', err);
     }
   }, []);
 
@@ -160,7 +161,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setQuantity(json.data.quantity ?? 0);
       }
     } catch (err) {
-      console.error('fetchQuantity error:', err);
+      logger.error('fetchQuantity error:', err);
     }
   }, []);
 
@@ -197,11 +198,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return true;
       }
     } catch (err) {
-      console.error('applyCouponCode error:', err);
+      logger.error('applyCouponCode error:', err);
       return false;
     }
     return false;
-  }, [fetchCart]);
+  }, []);
 
     const updateCart = useCallback(async (target: string, id:string): Promise<boolean> => {
     try {
@@ -236,11 +237,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return true;
       }
     } catch (err) {
-      console.error('update cart error:', err);
+      logger.error('update cart error:', err);
       return false;
     }
     return false;
-  }, [fetchCart]);
+  }, []);
 
   useEffect(() => {
     (async () => {

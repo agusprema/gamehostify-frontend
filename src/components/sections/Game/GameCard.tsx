@@ -31,7 +31,7 @@ const GameCard: React.FC<Props> = ({ game, onSelect, style, imageHeight, textHei
         </div>
       )}
 
-      {game.packages.some(pkg => pkg.has_discount) &&(
+      {game.has_discount &&(
         <div className="absolute top-0 right-0 z-50 p-2">
           <Percent className="w-5 h-5 text-red-500"/>
         </div>

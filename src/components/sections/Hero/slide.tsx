@@ -1,4 +1,4 @@
-export type SlideMeta = Record<string, any> | null | undefined;
+export type SlideMeta = Record<string, unknown> | null | undefined;
 
 export interface Slide {
   id: number;
@@ -21,5 +21,5 @@ export interface Slide {
   /** Optional ISO date string if provided by API. */
   validUntil?: string | null;
   /** Flexible meta payload. */
-  meta?: Record<string, any> | null;
+  meta?: Record<string, unknown> | null;
 }

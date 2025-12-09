@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { setFieldErrors } from "@/utils/rhf/setFieldErrors";
 import { login } from "@/lib/auth";
 import { Mail, LockKeyhole } from "lucide-react";
+import Input from "@/components/ui/Input";
+import Form from "@/components/ui/Form";
 
 type LoginValues = { email: string; password: string };
 
@@ -27,9 +29,10 @@ export default function LoginForm() {
     try {
       await login(values);
       router.push("/");
-    } catch (err: any) {
-      const fields = err?.fields ?? err?.errors ?? null;
-      const message = err?.message || "Login gagal";
+    } catch (err: unknown) {
+      const e = err as { fields?: Record<string, string | string[] | undefined>; errors?: Record<string, string | string[] | undefined>; message?: string };
+      const fields = e?.fields ?? e?.errors ?? null;
+      const message = e?.message || "Login gagal";
       const applied = setFieldErrors<LoginValues>(setError, fields, [
         "email",
         "password",
@@ -39,65 +42,38 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {formError && (
-        <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-          {formError}
-        </div>
-      )}
+    <Form onSubmit={handleSubmit(onSubmit)} error={formError}>
+      <Input
+        type="email"
+        label="Email"
+        placeholder="you@example.com"
+        leftIcon={<Mail className="w-5" />}
+        error={errors.email?.message}
+        autoComplete="email"
+        {...register("email", {
+          required: "Email wajib diisi",
+          pattern: { value: /\S+@\S+\.\S+/, message: "Format email tidak valid" },
+        })}
+      />
 
-      <div>
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">Email</label>
-        <div className="relative">
-          <input
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            className={`w-full rounded-xl px-4 py-3 pl-10 border bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition ${
-              errors.email ? "border-red-500" : "border-gray-300"
-            }`}
-            {...register("email", {
-              required: "Email wajib diisi",
-              pattern: { value: /\S+@\S+\.\S+/, message: "Format email tidak valid" },
-            })}
-          />
-          <span className="absolute inset-y-0 left-3 flex items-center text-primary-500">
-            <Mail className="w-5" />
-          </span>
-        </div>
-        {errors.email?.message && (
-          <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-black dark:text-white mb-1">Password</label>
-        <div className="relative">
-          <input
-            type="password"
-            autoComplete="current-password"
-            placeholder="••••••••"
-            className={`w-full rounded-xl px-4 py-3 pl-10 border bg-gray-100 text-gray-900 focus:border-primary-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-white transition ${
-              errors.password ? "border-red-500" : "border-gray-300"
-            }`}
-            {...register("password", { required: "Password wajib diisi" })}
-          />
-          <span className="absolute inset-y-0 left-3 flex items-center text-primary-500">
-            <LockKeyhole className="w-5" />
-          </span>
-        </div>
-        {errors.password?.message && (
-          <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
-        )}
-      </div>
+      <Input
+        type="password"
+        label="Password"
+        placeholder="••••••••"
+        leftIcon={<LockKeyhole className="w-5" />}
+        error={errors.password?.message}
+        autoComplete="current-password"
+        {...register("password", { required: "Password wajib diisi" })}
+      />
 
       <button
         type="submit"
         disabled={isSubmitting}
         className="cursor-pointer w-full inline-flex items-center justify-center rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-60 px-4 py-3 text-white font-semibold shadow-md transition"
       >
-        {isSubmitting ? "Memproses…" : "Masuk"}
+        {isSubmitting ? "Memproses." : "Masuk"}
       </button>
-    </form>
+    </Form>
   );
 }
+

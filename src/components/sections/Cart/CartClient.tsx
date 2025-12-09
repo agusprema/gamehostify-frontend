@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { getCartToken } from '@/lib/cart/getCartToken';
-import Wrapper from '@/components/ui/Wrapper';
-import { Loader2 } from 'lucide-react';
 
 const Cart = dynamic(() => import('./Cart'), { ssr: false });
 

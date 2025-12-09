@@ -6,6 +6,38 @@ export type CheckoutStep =
   | "success"
   | "loadingPay"; // Keep to stay compatible with StepIndicator & existing UI
 
+export type PaymentQueueStatus =
+  | "queued"
+  | "PROCESSING"
+  | "MANUAL_REVIEW"
+  | "SUCCEEDED"
+  | "FAILED"
+  | "REQUIRES_ACTION"
+  | "WAITING_PAYMENT"
+  | "REFUND"
+  | "PENDING"
+  | "ACCEPTING_PAYMENTS"
+  | "AUTHORIZED"
+  | "CANCELED"
+  | "EXPIRED"
+  | "INVALID";
+
+export interface PaymentStatusPayload {
+  status: PaymentQueueStatus;
+  tracking_id: string;
+  queued?: boolean;
+  reference_id?: string;
+  payment_request_id?: string;
+  transaction_id?: string;
+  // Additional fields enriched by status endpoint
+  updated_at?: string;
+  transaction?: CheckoutTransaction; // present for REQUIRES_ACTION or SUCCEEDED
+  fraud_check_id?: string | null;
+  support_case_id?: string | null;
+  message?: string | null;
+  errors?: Record<string, unknown>;
+}
+
 export interface CustomerFormValues {
   name: string;
   email: string;
@@ -48,6 +80,7 @@ export interface CheckoutTransaction {
   payment_method: string;
   status: string;
   actions?: TransactionAction[];
+  cancellation_token?: string;
   is_successful: boolean | null;
   paid_at: string | null;
   created_at: string;

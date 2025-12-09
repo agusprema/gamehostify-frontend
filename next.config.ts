@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 import type { RemotePattern } from "next/dist/shared/lib/image-config";
-
+const baseUrlFr = process.env.NEXT_PUBLIC_BASE_URL || "";
 const baseUrl = process.env.NEXT_PUBLIC_CDN_BASE_URL || "";
 const backendPublicBase = process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL || "";
 const backendPrivateBase = process.env.BACKEND_API_BASE_URL || ""; // only hostname used
@@ -8,6 +8,16 @@ let remotePatterns: RemotePattern[] = [];
 
 if (baseUrl) {
   const url = new URL(baseUrl);
+  const protocol = url.protocol.replace(":", "") as "http" | "https"; // 👈 force literal type
+  remotePatterns.push({
+    protocol,
+    hostname: url.hostname,
+    pathname: "/**",
+  });
+}
+
+if (baseUrlFr) {
+  const url = new URL(baseUrlFr);
   const protocol = url.protocol.replace(":", "") as "http" | "https"; // 👈 force literal type
   remotePatterns.push({
     protocol,
