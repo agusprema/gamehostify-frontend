@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import PageTransition from "@/components/animations/PageTransition";
 import Wrapper from "@/components/ui/Wrapper";
 import Link from "@/components/ui/Link";
 import { useSearchParams } from 'next/navigation';
 import { verifyPhoneChangeMagic } from "@/lib/auth";
 
-export default function PhoneChangeVerifyPage() {
+function PhoneChangeVerifyContent() {
   const sp = useSearchParams();
   const idParam = sp.get('rid');
   const token = sp.get('token') || '';
@@ -62,3 +62,10 @@ export default function PhoneChangeVerifyPage() {
   );
 }
 
+export default function PhoneChangeVerifyPage() {
+  return (
+    <Suspense fallback={null}>
+      <PhoneChangeVerifyContent />
+    </Suspense>
+  );
+}

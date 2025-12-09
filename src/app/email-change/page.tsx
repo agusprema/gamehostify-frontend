@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import PageTransition from "@/components/animations/PageTransition";
 import Wrapper from "@/components/ui/Wrapper";
 import Link from "@/components/ui/Link";
 import { useSearchParams } from 'next/navigation';
 import { verifyEmailChangeMagic } from "@/lib/auth";
 
-export default function EmailChangeVerifyPage() {
+function EmailChangeVerifyContent() {
   const sp = useSearchParams();
   const idParam = sp.get('rid');
   const token = sp.get('token') || '';
@@ -25,7 +25,7 @@ export default function EmailChangeVerifyPage() {
         setStatus('error');
         setMessage('Tautan tidak valid');
         return;
-        }
+      }
       setStatus('loading');
       try {
         const json = (await verifyEmailChangeMagic({ id, token })) as unknown as { message?: string };
@@ -62,3 +62,10 @@ export default function EmailChangeVerifyPage() {
   );
 }
 
+export default function EmailChangeVerifyPage() {
+  return (
+    <Suspense fallback={null}>
+      <EmailChangeVerifyContent />
+    </Suspense>
+  );
+}

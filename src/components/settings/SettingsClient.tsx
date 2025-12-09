@@ -42,7 +42,7 @@ export default function SettingsClient() {
       <Wrapper className="flex items-start justify-center py-10">
         <div className="w-full max-w-4xl space-y-8 px-4">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pengaturan Akun</h1>
-          <ProfileSection name={user?.name ?? null} email={user?.email ?? null} />
+          <ProfileSection name={user?.name ?? null} />
           <EmailChangeSection />
           <PhoneChangeSection />
           <PasswordSection />
