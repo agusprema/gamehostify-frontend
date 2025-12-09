@@ -1,0 +1,606 @@
+{
+  "provider": "Xendit",
+  "country": "ID",
+  "version": "1.2.0",
+  "compat": {
+    "previous_compatible_versions": ["1.1.0", "1.0.1"],
+    "breaking_changes": []
+  },
+  "meta": {
+    "estimated_invoice_update_minutes": 5,
+    "default_timezone": "Asia/Jakarta",
+    "currency": "IDR",
+    "placeholders": {
+      "va_number": "{{va_number}}",
+      "bank_name": "{{bank_name}}",
+      "atm_menu_path": "{{atm_menu_path}}",
+      "ib_menu_path": "{{ib_menu_path}}",
+      "mb_menu_path": "{{mb_menu_path}}",
+      "estimated_minutes": "{{estimated_minutes}}",
+      "ewallet_name": "{{ewallet_name}}",
+      "ewallet_deeplink": "{{ewallet_deeplink}}",
+      "ewallet_ref_id": "{{ewallet_ref_id}}",
+      "qris_string": "{{qris_string}}",
+      "qris_expiry_minutes": "{{qris_expiry_minutes}}",
+      "outlet_name": "{{outlet_name}}",
+      "payment_code": "{{payment_code}}",
+      "payment_barcode_url": "{{payment_barcode_url}}",
+      "outlet_expiry_days": "{{outlet_expiry_days}}",
+      "dd_bank_name": "{{dd_bank_name}}",
+      "dd_consent_url": "{{dd_consent_url}}",
+      "dd_mandate_ref": "{{dd_mandate_ref}}",
+      "paylater_name": "{{paylater_name}}",
+      "paylater_checkout_url": "{{paylater_checkout_url}}",
+      "card_last4": "{{card_last4}}",
+      "card_network": "{{card_network}}",
+      "three_ds_url": "{{three_ds_url}}"
+    },
+    "i18n": {
+      "id": {
+        "sections": {
+          "VA": "Virtual Account",
+          "EWALLET": "Dompet Digital",
+          "QRIS": "QRIS",
+          "RETAIL_OUTLET": "Gerai Ritel",
+          "DIRECT_DEBIT": "Debet Otomatis",
+          "PAYLATER": "Cicilan/Paylater",
+          "CARD": "Kartu Kredit/Debit"
+        }
+      },
+      "en": {
+        "sections": {
+          "VA": "Virtual Account",
+          "EWALLET": "E-Wallet",
+          "QRIS": "QRIS",
+          "RETAIL_OUTLET": "Retail Outlet",
+          "DIRECT_DEBIT": "Direct Debit",
+          "PAYLATER": "Buy Now, Pay Later",
+          "CARD": "Credit/Debit Card"
+        }
+      }
+    },
+    "notes": "Ganti placeholder sesuai response Xendit. Invoice biasanya ter-update otomatis ≤ 5 menit setelah pembayaran terkonfirmasi."
+  },
+  "mappings": {
+    "xendit_payment_types": {
+      "VA": [
+        "BCA",
+        "BNI",
+        "BRI",
+        "MANDIRI",
+        "PERMATA",
+        "CIMB",
+        "BJB",
+        "BSI",
+        "MUAMALAT",
+        "BTN",
+        "BNC",
+        "BSS"
+      ],
+      "EWALLET": ["OVO", "DANA", "SHOPEEPAY", "LINKAJA", " GOPAY "],
+      "QRIS": ["DYNAMIC_QR", "STATIC_QR"],
+      "RETAIL_OUTLET": ["ALFAMART", "INDOMARET"],
+      "DIRECT_DEBIT": ["DD_GENERIC"],
+      "PAYLATER": ["KREDIVO", "AKULAKU", "INDODANA", "ATOME"],
+      "CARD": ["CARD"]
+    },
+    "status_mapping": {
+      "PENDING": "waiting_payment",
+      "REQUIRES_ACTION": "requires_action",
+      "SUCCEEDED": "paid",
+      "SETTLED": "paid",
+      "FAILED": "failed",
+      "CANCELED": "canceled",
+      "EXPIRED": "expired",
+      "REFUNDED": "refunded",
+      "PARTIALLY_REFUNDED": "partially_refunded"
+    }
+  },
+  "ux": {
+    "display": {
+      "show_payment_code_as_barcode": true,
+      "show_countdown_timer": true,
+      "countdown_warning_threshold_minutes": 3,
+      "show_bank_logo": true,
+      "show_security_badges": ["3DS", "SSL"]
+    },
+    "copy": {
+      "success_hint": "Pembayaran berhasil. Halaman akan diperbarui otomatis.",
+      "pending_hint": "Menunggu konfirmasi dari penyedia pembayaran.",
+      "expired_hint": "Kode sudah kedaluwarsa. Silakan buat pesanan baru.",
+      "retry_hint": "Jika pembayaran gagal, coba metode lain atau ulangi proses."
+    }
+  },
+  "expiry_policies": {
+    "VA_minutes": 1440,
+    "QRIS_minutes": 15,
+    "EWALLET_minutes": 10,
+    "RETAIL_OUTLET_days": 2,
+    "DIRECT_DEBIT_minutes": 30,
+    "PAYLATER_minutes": 30,
+    "CARD_minutes": 15
+  },
+  "common_tips": [
+    "Jangan bagikan kode pembayaran kepada siapa pun.",
+    "Nominal harus sama persis dengan yang tertera.",
+    "Jika aplikasi tidak terbuka otomatis, salin tautan/deeplink dan buka manual.",
+    "Refresh halaman jika status belum berubah setelah beberapa menit."
+  ],
+  "templates": {
+    "ATM": [
+      {
+        "step": 1,
+        "text": "Temukan ATM {{bank_name}} terdekat dan masukkan kartu."
+      },
+      { "step": 2, "text": "Masukkan PIN Anda." },
+      { "step": 3, "text": "Pilih menu sesuai bank: {{atm_menu_path}}." },
+      { "step": 4, "text": "Masukkan Nomor Virtual Account: {{va_number}}." },
+      {
+        "step": 5,
+        "text": "Periksa nama dan total tagihan pada layar konfirmasi."
+      },
+      { "step": 6, "text": "Tekan 'Ya/Benar' untuk membayar." },
+      {
+        "step": 7,
+        "text": "Transaksi berhasil. Invoice akan ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ],
+    "IBANKING": [
+      { "step": 1, "text": "Masuk ke Internet Banking {{bank_name}}." },
+      {
+        "step": 2,
+        "text": "Pilih menu transfer/pembayaran sesuai bank: {{ib_menu_path}}."
+      },
+      { "step": 3, "text": "Masukkan Nomor Virtual Account: {{va_number}}." },
+      {
+        "step": 4,
+        "text": "Periksa detail (nama & total). Jika diminta, masukkan kode/token otentikasi."
+      },
+      {
+        "step": 5,
+        "text": "Kirim/konfirmasi pembayaran. Invoice akan ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ],
+    "MBANKING": [
+      {
+        "step": 1,
+        "text": "Buka aplikasi mobile banking {{bank_name}} dan login."
+      },
+      {
+        "step": 2,
+        "text": "Pilih menu transfer/pembayaran VA: {{mb_menu_path}}."
+      },
+      { "step": 3, "text": "Masukkan Nomor Virtual Account: {{va_number}}." },
+      { "step": 4, "text": "Periksa detail, lalu konfirmasi." },
+      {
+        "step": 5,
+        "text": "Masukkan PIN/OTP untuk otorisasi. Invoice akan ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ],
+    "EWALLET": [
+      { "step": 1, "text": "Pilih dompet digital: {{ewallet_name}}." },
+      {
+        "step": 2,
+        "text": "Klik 'Bayar' untuk membuka aplikasi melalui tautan: {{ewallet_deeplink}}."
+      },
+      {
+        "step": 3,
+        "text": "Jika tidak otomatis terbuka, salin nomor/ID transaksi: {{ewallet_ref_id}} lalu selesaikan di aplikasi {{ewallet_name}}."
+      },
+      {
+        "step": 4,
+        "text": "Periksa nominal dan nama merchant, lalu konfirmasi dengan PIN/biometrik."
+      },
+      {
+        "step": 5,
+        "text": "Setelah sukses, kembali ke halaman kami. Status invoice akan ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ],
+    "QRIS": [
+      {
+        "step": 1,
+        "text": "Buka aplikasi pembayaran yang mendukung QRIS (m-banking/e-wallet)."
+      },
+      {
+        "step": 2,
+        "text": "Pindai QR di layar atau unggah gambar QR."
+      },
+      {
+        "step": 3,
+        "text": "Pastikan nominal dan nama merchant benar, lalu konfirmasi."
+      },
+      {
+        "step": 4,
+        "text": "Selesaikan dalam {{qris_expiry_minutes}} menit sebelum kode kedaluwarsa."
+      },
+      {
+        "step": 5,
+        "text": "Setelah berhasil, invoice akan ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ],
+    "RETAIL_OUTLET": [
+      { "step": 1, "text": "Kunjungi kasir {{outlet_name}} terdekat." },
+      {
+        "step": 2,
+        "text": "Sampaikan ingin membayar 'Pembayaran {{provider}}' dan tunjukkan Kode Pembayaran: {{payment_code}}."
+      },
+      {
+        "step": 3,
+        "text": "Jika tersedia, tunjukkan barcode dari tautan: {{payment_barcode_url}}."
+      },
+      {
+        "step": 4,
+        "text": "Bayar sesuai nominal. Simpan struk sebagai bukti."
+      },
+      {
+        "step": 5,
+        "text": "Pembayaran harus dilakukan sebelum {{outlet_expiry_days}} hari. Invoice akan ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ],
+    "DIRECT_DEBIT": [
+      { "step": 1, "text": "Pilih Direct Debit {{dd_bank_name}}." },
+      {
+        "step": 2,
+        "text": "Klik 'Hubungkan Rekening' untuk membuka halaman persetujuan: {{dd_consent_url}}."
+      },
+      {
+        "step": 3,
+        "text": "Login ke {{dd_bank_name}} dan setujui mandat debet otomatis."
+      },
+      {
+        "step": 4,
+        "text": "Kembali ke checkout. Mandat: {{dd_mandate_ref}} tersimpan."
+      },
+      {
+        "step": 5,
+        "text": "Konfirmasi pembayaran. Jika diminta, selesaikan OTP/biometrik."
+      },
+      {
+        "step": 6,
+        "text": "Invoice akan ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ],
+    "PAYLATER": [
+      { "step": 1, "text": "Pilih paylater: {{paylater_name}}." },
+      {
+        "step": 2,
+        "text": "Klik 'Lanjutkan' untuk diarahkan ke halaman mitra: {{paylater_checkout_url}}."
+      },
+      {
+        "step": 3,
+        "text": "Login/daftar akun paylater dan pilih tenor cicilan."
+      },
+      {
+        "step": 4,
+        "text": "Setujui rincian cicilan dan selesaikan verifikasi (PIN/OTP)."
+      },
+      {
+        "step": 5,
+        "text": "Setelah disetujui, Anda akan kembali ke merchant. Invoice ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ],
+    "CARD": [
+      { "step": 1, "text": "Pilih Kartu Kredit/Debit." },
+      {
+        "step": 2,
+        "text": "Masukkan data kartu (nomor, masa berlaku, CVV) dan nama pemegang kartu."
+      },
+      { "step": 3, "text": "Periksa ringkasan pembayaran, lalu klik 'Bayar'." },
+      {
+        "step": 4,
+        "text": "Selesaikan 3-D Secure bila diminta di halaman bank: {{three_ds_url}}."
+      },
+      {
+        "step": 5,
+        "text": "Sukses. Kartu: {{card_network}}-****{{card_last4}}. Invoice akan ter-update otomatis (≤ {{estimated_minutes}} menit)."
+      }
+    ]
+  },
+  "banks": [
+    {
+      "name": "Bank Central Asia",
+      "id": "BCA_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator", "Switcher"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": {
+          "atm_menu_path": "Transaksi Lainnya → Transfer → ke Rekening BCA Virtual Account"
+        },
+        "IBANKING": {
+          "ib_menu_path": "Transfer Dana → Transfer ke BCA Virtual Account",
+          "extra": "Gunakan RESPON KEYBCA APPLI 1 saat diminta."
+        },
+        "MBANKING": {
+          "mb_menu_path": "m-Transfer → BCA Virtual Account",
+          "app_hint": "BCA Mobile → m-BCA"
+        }
+      }
+    },
+    {
+      "name": "Bank Negara Indonesia",
+      "id": "BNI_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator", "Switcher"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": {
+          "atm_menu_path": "Transaksi Lainnya → Transfer → Virtual Account Billing"
+        },
+        "IBANKING": { "ib_menu_path": "Transfer → Virtual Account Billing" },
+        "MBANKING": { "mb_menu_path": "Transfer → Virtual Account Billing" }
+      }
+    },
+    {
+      "name": "Bank Rakyat Indonesia",
+      "id": "BRI_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator", "Switcher"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Pembayaran → Lainnya → BRIVA" },
+        "IBANKING": { "ib_menu_path": "Pembayaran → BRIVA" },
+        "MBANKING": { "mb_menu_path": "BRIVA" }
+      }
+    },
+    {
+      "name": "Bank Mandiri",
+      "id": "MANDIRI_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator", "Switcher"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": {
+          "atm_menu_path": "Bayar/Beli → Multi Payment → masukkan VA saat diminta"
+        },
+        "IBANKING": { "ib_menu_path": "Bayar → Multi Payment" },
+        "MBANKING": {
+          "mb_menu_path": "Bayar → Multipayment (Livin’ by Mandiri)"
+        }
+      }
+    },
+    {
+      "name": "Bank CIMB Niaga",
+      "id": "CIMB_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator", "Switcher"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Transfer → Rekening CIMB Virtual Account" },
+        "IBANKING": {
+          "ib_menu_path": "Transfer → Virtual Account (OCTO Clicks)"
+        },
+        "MBANKING": {
+          "mb_menu_path": "Transfer → Virtual Account (OCTO Mobile)"
+        }
+      }
+    },
+    {
+      "name": "Bank Permata",
+      "id": "PERMATA_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator", "Switcher"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Pembayaran → Virtual Account" },
+        "IBANKING": {
+          "ib_menu_path": "Pembayaran → Virtual Account (PermataNet)"
+        },
+        "MBANKING": {
+          "mb_menu_path": "Bayar → Virtual Account (PermataMobile X)"
+        }
+      }
+    },
+    {
+      "name": "Bank Neo Commerce",
+      "id": "BNC_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator", "Switcher"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Transfer → Virtual Account" },
+        "IBANKING": { "ib_menu_path": "Transfer → Virtual Account" },
+        "MBANKING": { "mb_menu_path": "Transfer → Virtual Account (NEO)" }
+      }
+    },
+    {
+      "name": "Bank Sahabat Sampoerna",
+      "id": "BSS_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator", "Switcher"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Transfer/Pembayaran → Virtual Account" },
+        "IBANKING": { "ib_menu_path": "Transfer/Pembayaran → Virtual Account" },
+        "MBANKING": { "mb_menu_path": "Transfer/Pembayaran → Virtual Account" }
+      }
+    },
+    {
+      "name": "Bank Jabar Banten",
+      "id": "BJB_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Pembayaran → Virtual Account" },
+        "IBANKING": { "ib_menu_path": "Pembayaran → Virtual Account" },
+        "MBANKING": { "mb_menu_path": "Pembayaran → Virtual Account" }
+      }
+    },
+    {
+      "name": "Bank Syariah Indonesia",
+      "id": "BSI_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Pembayaran → Virtual Account" },
+        "IBANKING": { "ib_menu_path": "Pembayaran → Virtual Account" },
+        "MBANKING": { "mb_menu_path": "Pembayaran → Virtual Account" }
+      }
+    },
+    {
+      "name": "Bank Muamalat",
+      "id": "MUAMALAT_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Pembayaran → Virtual Account" },
+        "IBANKING": { "ib_menu_path": "Pembayaran → Virtual Account" },
+        "MBANKING": { "mb_menu_path": "Pembayaran → Virtual Account" }
+      }
+    },
+    {
+      "name": "Bank Tabungan Negara",
+      "id": "BTN_VIRTUAL_ACCOUNT",
+      "models": ["Aggregator"],
+      "channels": ["ATM", "IBANKING", "MBANKING"],
+      "overrides": {
+        "ATM": { "atm_menu_path": "Pembayaran → Virtual Account" },
+        "IBANKING": { "ib_menu_path": "Pembayaran → Virtual Account" },
+        "MBANKING": { "mb_menu_path": "Pembayaran → Virtual Account" }
+      }
+    }
+  ],
+  "ewallets": [
+    {
+      "name": "OVO",
+      "id": "OVO",
+      "channels": ["EWALLET"],
+      "overrides": {
+        "EWALLET": {
+          "hint": "Pastikan saldo mencukupi. Buka aplikasi OVO jika deeplink tidak otomatis."
+        }
+      }
+    },
+    {
+      "name": "DANA",
+      "id": "DANA",
+      "channels": ["EWALLET"],
+      "overrides": {
+        "EWALLET": {
+          "hint": "Login DANA, konfirmasi pembayaran, kembali ke merchant untuk lihat status."
+        }
+      }
+    },
+    {
+      "name": "ShopeePay",
+      "id": "SHOPEEPAY",
+      "channels": ["EWALLET"],
+      "overrides": {
+        "EWALLET": {
+          "hint": "Aktifkan ShopeePay di aplikasi Shopee sebelum membayar."
+        }
+      }
+    },
+    {
+      "name": "LinkAja",
+      "id": "LINKAJA",
+      "channels": ["EWALLET"],
+      "overrides": {
+        "EWALLET": { "hint": "Verifikasi PIN LinkAja saat konfirmasi." }
+      }
+    },
+    {
+      "name": "GoPay",
+      "id": "GOPAY",
+      "channels": ["EWALLET"],
+      "overrides": {
+        "EWALLET": {
+          "hint": "Selesaikan dalam aplikasi Gojek setelah dialihkan/deeplink."
+        }
+      }
+    }
+  ],
+  "qris": {
+    "id": "QRIS",
+    "channels": ["QRIS"],
+    "overrides": {
+      "QRIS": {
+        "tips": "Jika kamera bermasalah, gunakan unggah gambar QR atau input string statis {{qris_string}}. QR kedaluwarsa dalam {{qris_expiry_minutes}} menit."
+      }
+    }
+  },
+  "retail_outlets": [
+    {
+      "name": "Alfamart",
+      "id": "ALFAMART",
+      "channels": ["RETAIL_OUTLET"],
+      "overrides": {
+        "RETAIL_OUTLET": {
+          "cash_only_hint": "Pembayaran tunai di kasir. Simpan struk Anda."
+        }
+      }
+    },
+    {
+      "name": "Indomaret",
+      "id": "INDOMARET",
+      "channels": ["RETAIL_OUTLET"],
+      "overrides": {
+        "RETAIL_OUTLET": {
+          "cash_only_hint": "Tunjukkan kode pembayaran ke kasir Indomaret."
+        }
+      }
+    }
+  ],
+  "direct_debit": [
+    {
+      "name": "Generic Direct Debit",
+      "id": "DIRECT_DEBIT",
+      "channels": ["DIRECT_DEBIT"],
+      "overrides": {
+        "DIRECT_DEBIT": {
+          "banks_hint": "Dukungan bank tergantung ketersediaan. Ikuti tautan persetujuan {{dd_consent_url}}."
+        }
+      }
+    }
+  ],
+  "paylater_providers": [
+    {
+      "name": "Kredivo",
+      "id": "KREDIVO",
+      "channels": ["PAYLATER"],
+      "overrides": {
+        "PAYLATER": {
+          "installment_hint": "Pilih tenor cicilan di halaman Kredivo."
+        }
+      }
+    },
+    {
+      "name": "Akulaku",
+      "id": "AKULAKU",
+      "channels": ["PAYLATER"],
+      "overrides": {
+        "PAYLATER": {
+          "installment_hint": "Masuk akun Akulaku untuk verifikasi & tenor."
+        }
+      }
+    },
+    {
+      "name": "Indodana",
+      "id": "INDODANA",
+      "channels": ["PAYLATER"],
+      "overrides": {
+        "PAYLATER": {
+          "installment_hint": "Lengkapi proses penilaian cepat saat checkout."
+        }
+      }
+    },
+    {
+      "name": "Atome",
+      "id": "ATOME",
+      "channels": ["PAYLATER"],
+      "overrides": {
+        "PAYLATER": {
+          "installment_hint": "Login Atome dan pilih rencana pembayaran."
+        }
+      }
+    }
+  ],
+  "card": {
+    "name": "Kartu Kredit/Debit",
+    "id": "CARDS",
+    "channels": ["CARD"],
+    "overrides": {
+      "CARD": {
+        "supported_networks": ["VISA", "MASTERCARD", "JCB", "AMEX"],
+        "tips": "Pastikan 3-D Secure aktif. Jika halaman otentikasi tidak muncul, nonaktifkan pemblokir pop-up."
+      }
+    }
+  },
+  "edge_cases": {
+    "duplicate_payment_window_minutes": 10,
+    "show_manual_refresh_after_minutes": 2,
+    "contact_support_hint": "Jika dana terdebet namun status belum berubah > 15 menit, hubungi dukungan dengan bukti pembayaran."
+  }
+}

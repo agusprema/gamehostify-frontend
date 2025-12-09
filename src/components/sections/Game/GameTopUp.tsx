@@ -53,7 +53,6 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
   const [formErrors, setFormErrors] = useState<Record<string, string[]>>({});
   const [gamePackages, setGamePackages] = useState<GamePackage[]>([]);
   const [loadingPkgs, setLoadingPkgs] = useState(false);
-  const [pkgError, setPkgError] = useState<string | null>(null);
 
   /* ---------- Fetch Categories ---------- */
   const fetchCategories = useCallback(async () => {
@@ -85,7 +84,6 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     setSelectedPackage(null);
     setGameAccount("");
     setGamePackages([]);
-    setPkgError(null);
     const load = async () => {
       if (!selectedGame?.slug) return;
       try {
@@ -98,12 +96,9 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
         if (json?.status === "success") {
           const list: GamePackage[] = json?.data?.packages ?? [];
           if (!aborted) setGamePackages(list);
-        } else if (!aborted) {
-          setPkgError(json?.message || "Gagal memuat paket");
         }
       } catch (e) {
         logger.error("Load game packages failed", e);
-        if (!aborted) setPkgError("Gagal memuat paket");
       } finally {
         if (!aborted) setLoadingPkgs(false);
       }
@@ -222,7 +217,7 @@ const GameTopUp: React.FC<GameTopUpProps> = ({
     } finally {
       setIsProcessing(false);
     }
-  }, [selectedGame, selectedPackage, gameAccount, fetchQuantity, fetchCart]);
+  }, [toast, selectedGame, selectedPackage, gameAccount, fetchQuantity, fetchCart]);
 
   return (
     <section className="relative py-16">

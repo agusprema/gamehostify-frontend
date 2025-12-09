@@ -23,7 +23,6 @@ export function PhoneChangeSection() {
   const [pendingOtp, setPendingOtp] = useState<boolean>(false);
 
   const {
-    register: registerReq,
     control: controlReq,
     handleSubmit: handleSubmitReq,
     setError: setReqError,

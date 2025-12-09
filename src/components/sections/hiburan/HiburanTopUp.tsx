@@ -28,14 +28,12 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
   const [selectedPkg, setSelectedPkg] = useState<HiburanPackage | null>(null);
   const [packages, setPackages] = useState<HiburanPackage[]>([]);
   const [loadingPkgs, setLoadingPkgs] = useState(false);
-  const [pkgError, setPkgError] = useState<string | null>(null);
 
   useEffect(() => {
     // reset when opening a new item or closing
     setTarget("");
     setSelectedPkg(null);
     setPackages([]);
-    setPkgError(null);
     let aborted = false;
     const load = async () => {
       if (!selected?.slug) return;
@@ -49,12 +47,9 @@ export default function HiburanTopUp({ hiburans, isHome = false }: HiburanTopUpP
         if (json?.status === "success") {
           const list: HiburanPackage[] = json?.data?.packages ?? [];
           if (!aborted) setPackages(list);
-        } else if (!aborted) {
-          setPkgError(json?.message || "Gagal memuat paket");
         }
       } catch (e) {
         logger.error("Load entertainment packages failed", e);
-        if (!aborted) setPkgError("Gagal memuat paket");
       } finally {
         if (!aborted) setLoadingPkgs(false);
       }

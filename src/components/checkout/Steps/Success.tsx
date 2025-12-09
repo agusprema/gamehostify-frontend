@@ -13,7 +13,7 @@ import { CartItem } from "@/components/checkout/types/checkout";
 interface Props {
   orderId: string;
   items: CartItem[];
-  status?: "success" | "cancel" | "failed" | "expired";
+  status?: "SUCCEEDED" | "CANCELED" | "FAILED" | "EXPIRED";
 }
 
 const Success: React.FC<Props> = React.memo(({ orderId, items, status = "success" }) => {
@@ -26,17 +26,17 @@ const Success: React.FC<Props> = React.memo(({ orderId, items, status = "success
       ? "Game credits will be delivered to your account soon."
       : "You will receive a confirmation email shortly.";
 
-  if (status === "cancel") {
+  if (status === "CANCELED") {
     icon = <XCircle className="h-16 w-16 text-yellow-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Cancelled";
     message = "You cancelled the payment process.";
     orderNote = "You can try again or choose another payment method.";
-  } else if (status === "failed") {
+  } else if (status === "FAILED") {
     icon = <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Failed";
     message = "We couldn’t process your payment.";
     orderNote = "Please check your payment method or try again.";
-  } else if (status === "expired") {
+  } else if (status === "EXPIRED") {
     icon = <Clock className="h-16 w-16 text-orange-500 mx-auto mb-6" aria-hidden="true" />;
     title = "Payment Expired";
     message = "The payment session has expired.";

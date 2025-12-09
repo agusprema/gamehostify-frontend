@@ -87,6 +87,7 @@ const WaitingForPayment: React.FC<Props> = ({ transaction, onPaid }) => {
       </p>
 
       <PaymentInstructions
+        channelCode={transaction.payment_method}
         actions={transaction.actions?.filter((a): a is Required<TransactionAction> => !!a.descriptor && !!a.value)}
       />
 

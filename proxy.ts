@@ -11,7 +11,7 @@ function matchSegment(pathname: string, route: string) {
   return pathname === route || pathname.startsWith(route + '/');
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Skip on Next.js prefetch requests to avoid noisy redirects

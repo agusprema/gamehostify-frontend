@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { Search, RefreshCw, ReceiptText, ChevronDown, FileDown } from "lucide-react";
-import QRCode from "react-qr-code";
+import { Search, RefreshCw, ReceiptText, ChevronDown, FileDown, BanknoteX } from "lucide-react";
+import PaymentInstructions from "@/components/checkout/payment/PaymentInstructions";
 import Wrapper from "@/components/ui/Wrapper";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
@@ -32,6 +32,7 @@ interface InvoiceData {
   payment_method: string;
   status: string;
   actions: InvoiceAction[];
+  cancellation_token? : string;
   is_successful: boolean;
   paid_at: string | null;
   created_at: string;
@@ -302,6 +303,36 @@ export default function InvoiceClient({
     }
   };
 
+  const handleCancelTransaction = async (referenceId: string, cancellation_token?: string) => {
+    try {
+      const res = await apiFetch(`api/v1/payment/cancel`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reference_id: referenceId, cancellation_token }),
+      });
+
+      if (!res.ok) {
+        // Try to surface backend validation message if present
+        try {
+          const data = await res.json();
+          const apiMsg = data?.message || data?.error || "Gagal Membatalkan transaksi.";
+          throw new Error(apiMsg);
+        } catch {
+          throw new Error("Gagal Membatalkan transaksi.");
+        }
+      }
+
+      // Refresh invoice status after successful cancellation
+      fetchInvoice(referenceId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Gagal Membatalkan transaksi.";
+      setError(msg);
+    }
+  };
+
   return (
     <Wrapper>
       <main className="max-w-4xl mx-auto px-4 py-12 transition-colors duration-300" aria-labelledby="invoice-heading">
@@ -478,14 +509,26 @@ export default function InvoiceClient({
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleDownloadPdf(invoice.reference_id)}
-                  className="inline-flex cursor-pointer items-center gap-2 text-sm px-3 py-2 rounded-md border border-primary-500/40 text-primary-700 dark:text-primary-300 hover:bg-primary-500/10 dark:hover:bg-primary-500/20 transition"
-                >
-                  <FileDown className="h-4 w-4" />
-                  Download PDF
-                </button>
+                {invoice.status === "SUCCEEDED" && (
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadPdf(invoice.reference_id)}
+                    className="inline-flex cursor-pointer items-center gap-2 text-sm px-2 py-1 rounded-md border border-primary-500/40 text-primary-700 dark:text-primary-300 hover:bg-primary-500/10 dark:hover:bg-primary-500/20 transition"
+                  >
+                    <FileDown className="h-4 w-4" />
+                    Download PDF
+                  </button>
+                )}
+                {invoice.status === "REQUIRES_ACTION" && (
+                  <button
+                    type="button"
+                    onClick={() => handleCancelTransaction(invoice.reference_id, invoice.cancellation_token)}
+                    className="inline-flex cursor-pointer items-center gap-2 text-sm px-2 py-1 rounded-md border border-red-500/40 text-red-700 dark:text-red-300 hover:bg-red-500/10 dark:hover:bg-red-500/20 transition"
+                  >
+                    <BanknoteX className="h-4 w-4" />
+                    Batalkan
+                  </button>
+                )}
                 <span
                   className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium border ${statusColor(
                     invoice.status
@@ -521,57 +564,16 @@ export default function InvoiceClient({
 
             {/* Payment Actions */}
             {["WAITING_PAYMENT", "ACCEPTING_PAYMENTS", "REQUIRES_ACTION"].includes(invoice.status) && (
-              <section className="mt-6 space-y-4" aria-label="Aksi Pembayaran">
-                {invoice.actions?.map((action, i) => {
-                  const type = action.descriptor?.toUpperCase() ?? "";
-
-                  if (type.includes("QR_STRING")) {
-                    return (
-                      <div
-                        key={i}
-                        className="flex flex-col items-center text-center border border-primary-500/30 rounded-lg p-6 bg-gray-50 dark:bg-gray-800 shadow-md"
-                      >
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                          Scan QR untuk Membayar
-                        </p>
-                        <QRCode value={action.value} size={180} />
-                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">QR Code</p>
-                      </div>
-                    );
-                  }
-
-                  if (
-                    type.includes("DEEPLINK_URL") ||
-                    type.includes("WEB_URL")
-                  ) {
-                    return (
-                      <a
-                        key={i}
-                        href={action.value}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block w-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold py-3 rounded-lg text-center shadow-md transition"
-                      >
-                        Bayar Sekarang
-                      </a>
-                    );
-                  }
-
-                  return null;
-                })}
+              <section className="mt-6 space-y-4" aria-label="Instruksi Pembayaran">
+                <PaymentInstructions
+                  channelCode={invoice.payment_method}
+                  actions={invoice.actions}
+                />
               </section>
             )}
 
-            {/* Polling Indicator */}
-            {polling && (
-              <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-300 text-sm" role="status" aria-live="polite">
-                <RefreshCw className="animate-spin h-4 w-4" aria-hidden="true" />
-                Memeriksa status pembayaran...
-              </div>
-            )}
-
             {/* Items */}
-            <section aria-labelledby="produk-heading">
+            <section className="mt-5" aria-labelledby="produk-heading">
               <h2 id="produk-heading" className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
                 Daftar Produk
               </h2>

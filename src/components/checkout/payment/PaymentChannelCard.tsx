@@ -3,8 +3,6 @@
 import React from "react";
 import { PaymentChannel } from "@/components/checkout/types/checkout";
 import Image from "next/image";
-import { joinUrl } from "@/lib/url";
-import { getPublicBackendBase } from "@/lib/publicBase";
 
 interface PaymentChannelCardProps {
   channel: PaymentChannel;

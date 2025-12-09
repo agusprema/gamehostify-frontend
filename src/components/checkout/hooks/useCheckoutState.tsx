@@ -17,7 +17,7 @@ import logger from "@/lib/logger";
 import { useToast } from "@/components/ui/ToastProvider";
 
 interface UseCheckoutStateOpts {
-  initialStatus?: "success" | "cancel" | "failed" | "expired";
+  initialStatus?: "SUCCEEDED" | "CANCELED" | "FAILED" | "EXPIRED";
   initialReferenceId?: string;
 }
 
@@ -44,7 +44,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
   const [selectedChannel, setSelectedChannel] = useState("");
   const [channelProperties, setChannelProperties] = useState<Record<string, unknown>>({});
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [status, setStatus] = useState<"success" | "cancel" | "failed" | "expired">("success");
+  const [status, setStatus] = useState<"SUCCEEDED" | "CANCELED" | "FAILED" | "EXPIRED">("SUCCEEDED");
   const [trackingId, setTrackingId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusPayload | null>(null);
 
@@ -229,7 +229,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
         });
         setOrderId(null);
         setStep("processing");
-      } else {
+      }else {
         toast.error("Pembayaran gagal. Silakan coba lagi.");
         setStep("payment");
       }
@@ -240,7 +240,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
     } finally {
       setIsPaying(false);
     }
-  }, [selectedChannel, customerInfo, channelProperties, authenticated, code]);
+  }, [toast, selectedChannel, customerInfo, channelProperties, authenticated, code]);
 
   useEffect(() => {
     if (!trackingId) return;
@@ -292,7 +292,7 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
         const data = json.data as PaymentStatusPayload;
 
         setPaymentStatus((prev) => {
-          if (prev?.status !== data.status && data.status === "manual_review") {
+          if (prev?.status !== data.status && data.status === "MANUAL_REVIEW") {
             toast.info(
               "Transaksi membutuhkan review manual. Tim kami akan menghubungi Anda jika diperlukan."
             );
@@ -302,28 +302,34 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
 
         switch (data.status) {
           case "queued":
-          case "processing": {
+          case "PROCESSING": {
             scheduleNext();
             break;
           }
-          case "manual_review": {
+          case "REQUIRES_ACTION": {
+            // Keep showing processing step with instructions; continue polling until success/failure
+            setStep("processing");
+            scheduleNext();
+            break;
+          }
+          case "MANUAL_REVIEW": {
             handleFinalStateCleanup();
             setStep("processing");
             break;
           }
-          case "success": {
+          case "SUCCEEDED": {
             handleFinalStateCleanup();
             setStep("success");
             if (data.reference_id) {
               setOrderId(data.reference_id);
-              setStatus("success");
+              setStatus("SUCCEEDED");
               router.push(`/invoice?ref=${encodeURIComponent(data.reference_id)}`);
             } else {
               toast.success("Permintaan pembayaran berhasil diproses.");
             }
             break;
           }
-          case "invalid": {
+          case "INVALID": {
             handleFinalStateCleanup();
             const errors = (data.errors ?? {}) as Record<string, string[] | string>;
             const { customer, channel, hasCustomerErr, hasChannelErr } = buildErrorObjects(errors);
@@ -335,10 +341,20 @@ export function useCheckoutState(opts: UseCheckoutStateOpts = {}) {
             else setStep("payment");
             break;
           }
-          case "failed": {
+          case "FAILED": {
             handleFinalStateCleanup();
             toast.error(data.message ?? "Pembayaran gagal diproses. Silakan coba lagi.");
             setStep("payment");
+            break;
+          }
+          case "CANCELED": {
+            handleFinalStateCleanup();
+            // Tampilkan halaman ringkasan dengan status dibatalkan
+            setStep("success");
+            if (data.reference_id) {
+              setOrderId(data.reference_id);
+            }
+            setStatus("CANCELED");
             break;
           }
           default: {

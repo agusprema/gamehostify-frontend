@@ -29,7 +29,6 @@ export function PulsaModal({
   const [phone, setPhone] = useState("");
   const [selectedPkg, setSelectedPkg] = useState<OperatorPackage | null>(null);
   const [loadingPkgs, setLoadingPkgs] = useState(false);
-  const [pkgError, setPkgError] = useState<string | null>(null);
   const [packages, setPackages] = useState<OperatorPackage[]>([]);
   // const inputId = useId();
 
@@ -55,7 +54,6 @@ export function PulsaModal({
     setSelectedPkg(null);
     setTab("pulsa");
     setPackages([]);
-    setPkgError(null);
     let aborted = false;
     const load = async () => {
       if (!isOpen || !operator?.slug) return;
@@ -69,12 +67,9 @@ export function PulsaModal({
         if (json?.status === "success") {
           const list: OperatorPackage[] = json?.data?.packages ?? [];
           if (!aborted) setPackages(list);
-        } else {
-          if (!aborted) setPkgError(json?.message || "Gagal memuat paket");
         }
       } catch (e) {
         logger.error("Load operator packages failed", e);
-        if (!aborted) setPkgError("Gagal memuat paket");
       } finally {
         if (!aborted) setLoadingPkgs(false);
       }

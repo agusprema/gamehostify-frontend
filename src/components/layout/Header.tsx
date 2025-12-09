@@ -16,6 +16,7 @@ import { useAuthStatus } from '@/hooks/useAuthStatus';
 import { logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { openCart } from '@/components/sections/Cart/CartClient';
+import Image from 'next/image';
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME || 'GameVault';
 
@@ -139,8 +140,10 @@ export default function Header() {
                     className="flex items-center gap-2 rounded-full border border-primary-500/20 bg-white/75 px-3 py-1.5 text-sm font-semibold text-gray-800 transition-all duration-200 hover:border-primary-500/40 hover:text-primary-600 hover:shadow-primary-500/20 dark:border-white/10 dark:bg-white/10 dark:text-gray-100 dark:hover:text-primary-200"
                   >
                     {user?.avatar ? (
-                      <img
+                      <Image
                         src={user.avatar}
+                        width={100}
+                        height={100}
                         alt={`${userDisplayName} avatar`}
                         className="h-8 w-8 rounded-full border border-white/60 object-cover dark:border-white/20"
                         loading="lazy"

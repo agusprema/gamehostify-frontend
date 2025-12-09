@@ -4,6 +4,7 @@ import PageTransition from "@/components/animations/PageTransition";
 import Wrapper from "@/components/ui/Wrapper";
 import Link from '@/components/ui/Link';
 import { useAuthStatus } from '@/hooks/useAuthStatus';
+import Image from "next/image";
 
 function formatBirthDate(input: unknown): string {
   if (!input) return "-";
@@ -83,8 +84,10 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center text-center">
                 <div className="relative inline-flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-primary-400/80 to-accent-500/80 p-[2px] shadow-xl shadow-primary-300/40 dark:shadow-primary-950/30">
                   {user?.avatar ? (
-                    <img
+                    <Image
                       src={user.avatar}
+                      width={200}
+                      height={200}
                       alt="Avatar"
                       className="h-full w-full rounded-full object-cover"
                     />

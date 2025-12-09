@@ -39,22 +39,18 @@ export const logger = {
   },
   debug: (...args: unknown[]) => {
     if (!shouldLog("debug")) return;
-    // eslint-disable-next-line no-console
     console.debug(...formatMsg("debug", args));
   },
   info: (...args: unknown[]) => {
     if (!shouldLog("info")) return;
-    // eslint-disable-next-line no-console
     console.info(...formatMsg("info", args));
   },
   warn: (...args: unknown[]) => {
     if (!shouldLog("warn")) return;
-    // eslint-disable-next-line no-console
     console.warn(...formatMsg("warn", args));
   },
   error: (...args: unknown[]) => {
     if (!shouldLog("error")) return;
-    // eslint-disable-next-line no-console
     console.error(...formatMsg("error", args));
   },
 };

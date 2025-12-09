@@ -141,7 +141,7 @@ function CartComponent({ isOpen, onClose, staleTime = 30_000 }: CartProps) {
         }
       });
     },
-    [fetchCart, fetchQuantity, startTransition]
+    [toast, fetchCart, fetchQuantity, startTransition]
   );
 
 

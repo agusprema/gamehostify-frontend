@@ -36,8 +36,8 @@ export default function CheckoutPage() {
 
   // Validasi status agar cocok dengan union type
   const rawStatus = searchParams.get("status");
-  const initialStatus = ["success", "cancel", "failed", "expired"].includes(rawStatus || "")
-    ? (rawStatus as "success" | "cancel" | "failed" | "expired")
+  const initialStatus = ["SUCCEEDED", "CANCELED", "FAILED", "EXPIRED"].includes(rawStatus || "")
+    ? (rawStatus as "SUCCEEDED" | "CANCELED" | "FAILED" | "EXPIRED")
     : undefined;
 
   const {
@@ -99,7 +99,7 @@ export default function CheckoutPage() {
         }
       });
     },
-    [fetchCart, fetchQuantity, startTransition]
+    [toast, fetchCart, fetchQuantity, startTransition]
   );
 
   const handleApplyCode = useCallback(

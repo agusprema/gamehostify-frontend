@@ -20,12 +20,6 @@ type TokenValidateSuccess = {
   };
 };
 
-type TokenValidateError = {
-  status: "error";
-  message: string;
-  errors: unknown;
-};
-
 type PublicTestimonialsResponse = {
   status: "success";
   message: string;

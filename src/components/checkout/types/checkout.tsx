@@ -8,11 +8,19 @@ export type CheckoutStep =
 
 export type PaymentQueueStatus =
   | "queued"
-  | "processing"
-  | "manual_review"
-  | "success"
-  | "invalid"
-  | "failed";
+  | "PROCESSING"
+  | "MANUAL_REVIEW"
+  | "SUCCEEDED"
+  | "FAILED"
+  | "REQUIRES_ACTION"
+  | "WAITING_PAYMENT"
+  | "REFUND"
+  | "PENDING"
+  | "ACCEPTING_PAYMENTS"
+  | "AUTHORIZED"
+  | "CANCELED"
+  | "EXPIRED"
+  | "INVALID";
 
 export interface PaymentStatusPayload {
   status: PaymentQueueStatus;
@@ -21,6 +29,9 @@ export interface PaymentStatusPayload {
   reference_id?: string;
   payment_request_id?: string;
   transaction_id?: string;
+  // Additional fields enriched by status endpoint
+  updated_at?: string;
+  transaction?: CheckoutTransaction; // present for REQUIRES_ACTION or SUCCEEDED
   fraud_check_id?: string | null;
   support_case_id?: string | null;
   message?: string | null;
@@ -69,6 +80,7 @@ export interface CheckoutTransaction {
   payment_method: string;
   status: string;
   actions?: TransactionAction[];
+  cancellation_token?: string;
   is_successful: boolean | null;
   paid_at: string | null;
   created_at: string;

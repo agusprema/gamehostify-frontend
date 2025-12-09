@@ -2,6 +2,7 @@ import React from "react";
 import type { CommonPackage } from "@/components/ui/Modal/types";
 import Badge from "@/components/ui/Badge";
 import { formatPrice } from "@/utils/formatPrice";
+import { Star, Percent } from "lucide-react";
 
 interface PackageCardProps {
   pkg: CommonPackage;
@@ -20,7 +21,8 @@ export default function PackageCard({ pkg, selected = false, onClick }: PackageC
     >
       <div className="flex items-center justify-between">
         <p className="font-semibold text-gray-800 dark:text-white">{pkg.name}</p>
-        {pkg.is_popular && <Badge>Populer</Badge>}
+        {pkg.is_popular && <Badge><Star width={15} className="text-yellow-500 fill-yellow-500"/></Badge>}
+        {pkg.has_discount && <Badge color="red"><Percent width={15}/></Badge>}
       </div>
       {pkg.amount && (
         <p className="text-xs text-gray-500 dark:text-gray-400">{pkg.amount}</p>
