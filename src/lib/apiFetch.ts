@@ -8,6 +8,15 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   const apiBase = rawBase.replace(/\/$/, '');
   const isServer = typeof window === 'undefined';
 
+  // Helper to read a named cookie (client-side only)
+  const getCookie = (name: string): string | null => {
+    if (isServer || typeof document === 'undefined') return null;
+    const match = document.cookie.match(
+      new RegExp('(?:^|; )' + name.replace(/([$?*|{}\]\\/\+^])/g, '\\$1') + '=([^;]*)')
+    );
+    return match ? match[1] : null;
+  };
+
   // Resolve the URL string from various input types
   let urlStr: string;
   if (typeof input === 'string') {
@@ -68,6 +77,14 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   // Never forward client Authorization to BFF; BFF derives from HttpOnly cookie
   if (headers.has('Authorization')) headers.delete('Authorization');
 
+  // Attach CSRF/XSRF token from cookie for browser requests (e.g. Laravel Sanctum)
+  if (!isServer) {
+    const xsrfCookie = getCookie('XSRF-TOKEN');
+    if (xsrfCookie && !headers.has('X-XSRF-TOKEN')) {
+      headers.set('X-XSRF-TOKEN', decodeURIComponent(xsrfCookie));
+    }
+  }
+
   // For server-side internal API calls that we rewrote to hit the backend
   // directly, attach the BFF key so the upstream accepts the request.
   if (isServerInternalApi) {
@@ -77,5 +94,8 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     }
   }
 
-  return fetch(finalUrl, { ...init, headers });
+  // Ensure cookies (session, XSRF-TOKEN, etc.) are sent by default
+  const credentials = init.credentials ?? 'include';
+
+  return fetch(finalUrl, { ...init, headers, credentials });
 }
