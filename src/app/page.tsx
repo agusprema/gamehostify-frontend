@@ -1,5 +1,4 @@
-
-import dynamic from "next/dynamic";
+import dynamicImport from "next/dynamic";
 import { joinUrl } from "@/lib/url";
 import Hero from "@/components/sections/Hero/Hero";
 import ProductGrid from "@/components/sections/Products/ProductGrid";
@@ -35,8 +34,8 @@ const ogUrl = (() => {
 })();
 
 // Dynamic import (lazy load)
-const Faq = dynamic(() => import("@/components/sections/Faq/Faq"));
-const Testimonials = dynamic(() => import("@/components/sections/Testimonials/Testimonials"));
+const Faq = dynamicImport(() => import("@/components/sections/Faq/Faq"));
+const Testimonials = dynamicImport(() => import("@/components/sections/Testimonials/Testimonials"));
 
 // FAQ items (static, bisa di luar komponen)
 const FAQ_ITEMS = [
