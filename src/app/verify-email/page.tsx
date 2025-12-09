@@ -38,7 +38,20 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
       }
     );
     // Hanya redirect jika verifikasi sukses (response OK)
-    redirect("/login");
+    //redirect("/login");
+
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center px-4">
+          <h1 className="text-xl font-semibold mb-2 text-white">
+            Verifikasi email berhasil
+          </h1>
+          <p className="text-sm text-gray-300">
+            Tautan verifikasi tidak valid atau sudah kedaluwarsa.
+          </p>
+        </div>
+      </main>
+    );
   } catch {
     // Jika gagal, tampilkan pesan error sederhana
     return (
