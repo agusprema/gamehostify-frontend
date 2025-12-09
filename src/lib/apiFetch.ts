@@ -4,10 +4,7 @@
  */
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   // Normalize base (strip trailing slash)
-  const rawBase = (
-    process.env.BACKEND_API_BASE_URL ||
-    ''
-  ).toString();
+  const rawBase = (process.env.NEXT_PUBLIC_BASE_URL || "").toString();
   const apiBase = rawBase.replace(/\/$/, '');
   const isServer = typeof window === 'undefined';
 
