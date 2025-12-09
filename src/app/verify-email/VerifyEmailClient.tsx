@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { apiRequest } from "@/lib/http";
+import { apiFetch } from "@/lib/apiFetch";
 
 export default function VerifyEmailClient() {
   const searchParams = useSearchParams();
@@ -25,7 +25,7 @@ export default function VerifyEmailClient() {
       }
 
       try {
-        await apiRequest<unknown>(signedUrl,
+        await apiFetch(signedUrl,
           {
             method: "GET",
             headers: {
