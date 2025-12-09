@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/apiFetch";
+import { handleApiErrors } from "@/utils/apiErrorHandler";
 
 export default function VerifyEmailClient() {
   const searchParams = useSearchParams();
@@ -25,14 +26,29 @@ export default function VerifyEmailClient() {
       }
 
       try {
-        await apiFetch(signedUrl,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
+        const res = await apiFetch(signedUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        let json: unknown = null;
+        try {
+          json = await res.clone().json();
+        } catch {
+          json = null;
+        }
+
+        if (!res.ok) {
+          const { message } = handleApiErrors(json);
+          setStatus("error");
+          setMessage(
+            message || "Verifikasi email gagal atau tautan kedaluwarsa."
+          );
+          return;
+        }
+
         setStatus("success");
         router.push("/login");
       } catch {

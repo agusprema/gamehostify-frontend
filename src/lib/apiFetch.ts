@@ -42,36 +42,23 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     }
   }
 
-  // On the server, make relative URL absolute using an internal/base URL.
-  // Prefer server-only base (APP_URL/INTERNAL_APP_URL) over public URL to avoid
-  // routing through external hosts like ngrok/Vercel domains from the server.
-  if (isServer && finalUrl.startsWith('/')) {
-    let appBase = '';
-    const candidates = [
-      process.env.APP_URL,
-      process.env.INTERNAL_APP_URL,
-      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
-      process.env.NEXT_PUBLIC_BASE_URL,
-    ].filter(Boolean) as string[];
+  // Track internal API calls (`/api/...`) on the server so we can
+  // safely attach the BFF key when talking directly to the backend.
+  const isServerInternalApi = isServer && /^\/api\//.test(finalUrl);
 
-    if (candidates.length) {
-      appBase = String(candidates[0]);
-    }
-
-    // In development, fall back to localhost to avoid external loopback
-    if (!appBase && process.env.NODE_ENV !== 'production') {
-      const port = process.env.PORT || '3000';
-      appBase = `http://localhost:${port}`;
-    }
-
-    // If it's a bare host (e.g. VERCEL_URL), coerce to https://
-    if (appBase && !/^https?:\/\//i.test(appBase)) {
-      appBase = `https://${appBase}`;
-    }
-
-    appBase = appBase.replace(/\/$/, '');
-    if (appBase) {
-      finalUrl = `${appBase}${finalUrl}`;
+  // On the server, resolve internal `/api/...` calls directly against the
+  // configured backend base URL so we don't depend on a local Next server
+  // (e.g. during `next build` / static export).
+  if (isServerInternalApi) {
+    const rawBackendBase =
+      process.env.BACKEND_API_BASE_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL ||
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      '';
+    const backendBase = rawBackendBase.toString().replace(/\/$/, '');
+    if (backendBase) {
+      const path = finalUrl.replace(/^\/+/, '');
+      finalUrl = `${backendBase}/${path}`;
     }
   }
 
@@ -80,6 +67,15 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
   if (headers.has('X-BFF-Auth')) headers.delete('X-BFF-Auth');
   // Never forward client Authorization to BFF; BFF derives from HttpOnly cookie
   if (headers.has('Authorization')) headers.delete('Authorization');
+
+  // For server-side internal API calls that we rewrote to hit the backend
+  // directly, attach the BFF key so the upstream accepts the request.
+  if (isServerInternalApi) {
+    const bffKey = process.env.BFF_API_KEYS;
+    if (bffKey && !headers.has('X-BFF-Auth')) {
+      headers.set('X-BFF-Auth', bffKey);
+    }
+  }
 
   return fetch(finalUrl, { ...init, headers });
 }
