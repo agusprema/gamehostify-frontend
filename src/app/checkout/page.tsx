@@ -2,6 +2,7 @@
 import CheckoutPage from '@/components/checkout/CheckoutPage';
 import type { Metadata } from "next";
 import { joinUrl } from "@/lib/url";
+import { Suspense } from "react";
 
 const app_name = process.env.NEXT_PUBLIC_APP_NAME;
 const app_url = process.env.NEXT_PUBLIC_BASE_URL;
@@ -68,5 +69,9 @@ export const viewport = {
 };
 
 export default function CheckoutRoute() {
-  return <CheckoutPage />;
+  return (
+    <Suspense fallback={null}>
+      <CheckoutPage />
+    </Suspense>
+  );
 }
