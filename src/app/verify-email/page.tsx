@@ -37,10 +37,21 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
         },
       }
     );
+    // Hanya redirect jika verifikasi sukses (response OK)
+    redirect("/login");
   } catch {
-    // Abaikan error, tetap redirect ke login
+    // Jika gagal, tampilkan pesan error sederhana
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center px-4">
+          <h1 className="text-xl font-semibold mb-2 text-white">
+            Verifikasi email gagal
+          </h1>
+          <p className="text-sm text-gray-300">
+            Tautan verifikasi tidak valid atau sudah kedaluwarsa.
+          </p>
+        </div>
+      </main>
+    );
   }
-
-  redirect("/login");
 }
-
