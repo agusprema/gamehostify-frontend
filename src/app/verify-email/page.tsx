@@ -17,7 +17,18 @@ export default async function VerifyEmailPage({ searchParams }: VerifyEmailPageP
   const signature = searchParams?.signature;
 
   if (!id || !hash) {
-    redirect("/login");
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="text-center px-4">
+          <h1 className="text-xl font-semibold mb-2 text-white">
+            Verifikasi ada msalah
+          </h1>
+          <p className="text-sm text-gray-300">
+            Tautan verifikasi tidak valid atau sudah kedaluwarsa.
+          </p>
+        </div>
+      </main>
+    );
   }
 
   const qs = new URLSearchParams();
